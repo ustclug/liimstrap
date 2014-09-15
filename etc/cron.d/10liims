@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/liims/bin:/sbin:/bin:/usr/sbin:/usr/bin
+0 2 * * * root randomreboot.sh
+30 * * * * root randomkill.sh

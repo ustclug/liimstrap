@@ -1,0 +1,8 @@
+*filter
+-N user-filt
+-A OUTPUT -m owner --uid-owner 1000 -j user-filt
+-A user-filt -j RETURN -d 2001:da8:d800:71::638
+-A user-filt -j RETURN -d lug.ustc.edu.cn
+-A user-filt -j RETURN -d pxe.ustc.edu.cn
+-A user-filt -j REJECT
+COMMIT

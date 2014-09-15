@@ -1,0 +1,2 @@
+0 2 * * * /liims/bin/randomreboot.sh
+30 * * * * /liims/bin/reset.sh 

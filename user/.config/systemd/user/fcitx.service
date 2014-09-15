@@ -1,0 +1,10 @@
+[Unit]
+Description=FCITX input method
+
+[Service]
+EnvironmentFile=%h/.config/systemd/XENV
+ExecStart=/usr/bin/fcitx -D
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+Restart=always
+RestartSec=2

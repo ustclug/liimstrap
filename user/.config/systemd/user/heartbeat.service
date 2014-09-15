@@ -1,0 +1,6 @@
+[Unit]
+Description=LIIMS heartbeat.
+
+[Service]
+Type=oneshot
+ExecStart=/liims/bin/heartbeat 

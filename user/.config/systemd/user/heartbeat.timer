@@ -1,0 +1,9 @@
+[Unit]
+Description=Do heartbeat every minutes.
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=30
+
+[Install]
+WantedBy=timers.target

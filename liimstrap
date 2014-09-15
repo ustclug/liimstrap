@@ -1,0 +1,120 @@
+#!/bin/bash
+
+set -e
+BASE="$(dirname "$0")"
+
+function chdo () {
+    chroot "$ROOT" "$@"
+} 
+
+function enserv () {
+    chroot $ROOT systemctl enable "$@"
+}
+
+function inspkg () {
+    pacstrap -C "$BASE/etc/pacman.conf" -c -d "$ROOT" "$@"
+}
+
+ROOT="$1"
+LIIMSUSER="liims"
+
+if [ ! -d "$ROOT" ]; then
+    echo "$ROOT is not a directory."
+    exit 1
+elif [ $(whoami) != 'root' ]; then
+    echo "You are not root!"
+    exit 1
+fi
+
+# root password
+if [ -f "$BASE/.rootpasswd" ]; then
+    ROOTPASSWD=$(cat "$BASE/.rootpasswd")
+else
+    while true; do
+        echo -e "root password: "
+        read -s ROOTPASSWD
+        echo -e "root password again: "
+        read -s ROOTPASSWD2
+
+        [ "$ROOTPASSWD" == "$ROOTPASSWD2" ] && break
+    done
+fi
+
+# pacman
+install -Dm 644 "$BASE/etc/pacman.conf" "$ROOT/etc/pacman/pacman.conf"
+inspkg $(cat "$BASE/pkglist")
+
+# Assistant scripts and programs
+mkdir -p "$ROOT/liims/bin"
+echo 'export PATH=$PATH:/liims/bin' > "$ROOT/etc/profile.d/liims.sh"
+echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
+
+for script in "$BASE/bin/*.sh"; do
+    install -Dm 755 $script "$ROOT/liims/bin"
+done
+
+unset CFLAGS
+cc "$BASE/bin/heartbeat.c" -o "$ROOT/liims/bin/heartbeat" -lcurl
+cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -lX11 -lXext -lXss
+
+# SSH login for root
+echo "PasswordAuthentication no" > "$ROOT/etc/ssh/sshd_config"
+echo -e "$ROOTPASSWD\n$ROOTPASSWD" | chdo passwd
+mkdir -p "$ROOT/root/.ssh"
+chmod 700 "$ROOT/root/.ssh"
+install -Dm 600 "$BASE/etc/authorized_keys" "$ROOT/root/.ssh/authorized_keys"
+enserv sshd.socket
+
+# resolv.conf
+echo "nameserver 2001:da8:d800::17" > "$ROOT/etc/resolv.conf"
+cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
+
+# dhcpcd
+#echo -e "\nnoipv6\n" >> "$ROOT/etc/dhcpcd.conf"
+enserv dhcpcd
+
+# time and NTP
+chdo ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+echo -e "[Time]\nNTP=time.ustc.edu.cn" > "$ROOT/etc/systemd/timesyncd.conf"
+enserv systemd-timesyncd.service
+
+# locale
+echo -e "en_US.UTF-8 UTF-8\nzh_CN.GBK GBK\nzh_CN.UTF-8 UTF-8" > \
+        "$ROOT/etc/locale.gen"
+chdo locale-gen
+
+# iptables
+cp "$BASE/etc/iptables/"*.rules "$ROOT/etc/iptables/"
+enserv iptables.service ip6tables.service
+
+# crontab
+cp "$BASE/etc/root.crontab" "$ROOT/tmp/"
+chdo crontab "/tmp/root.crontab"
+enserv cronie
+
+# slim
+cp "$BASE/etc/slim.conf" "$ROOT/etc/"
+enserv slim
+
+# user specific
+chdo userdel -fr "$LIIMSUSER" || true
+chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"
+cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
+chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
+
+# kernel
+for ins in $BASE/initcpio/*.install; do
+    filename=$(basename "$ins")
+    filename="${filename%.*}"
+    install -Dm644 "$ins" "$ROOT/usr/lib/initcpio/install/$filename"
+done
+
+for hook in $BASE/initcpio/*.hook; do
+    filename=$(basename "$hook")
+    filename="${filename%.*}"
+    install -Dm644 "$hook" "$ROOT/usr/lib/initcpio/hooks/$filename"
+done
+
+install -Dm644 "$BASE/initcpio/mkinitcpio.conf" "$ROOT/etc/mkinitcpio.conf"
+inspkg linux-lily
+

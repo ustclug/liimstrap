@@ -1,0 +1,5 @@
+[LIIMS]
+name=图书查询
+text=图书名称
+uri=http://opac.lib.ustc.edu.cn/opac/search_adv_result.php?rd_book=opac&q0=%s&sType0=any
+

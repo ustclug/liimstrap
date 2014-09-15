@@ -1,0 +1,16 @@
+*filter
+-N user-filt
+-A OUTPUT -m owner --uid-owner 1000 -j user-filt
+-A user-filt -j RETURN -d 202.38.64.17,202.38.64.7
+-A user-filt -j RETURN -d opac.lib.ustc.edu.cn
+-A user-filt -j RETURN -d lib.ustc.edu.cn
+-A user-filt -j RETURN -d liser.ustc.edu.cn
+-A user-filt -j RETURN -d email.ustc.edu.cn
+-A user-filt -j RETURN -d auth.ahadl.org
+-A user-filt -j RETURN -d bbs.ustc.edu.cn
+-A user-filt -j RETURN -d mis.teach.ustc.edu.cn
+-A user-filt -j RETURN -d 202.38.93.94
+-A user-filt -j RETURN -d 202.38.74.48
+-A user-filt -j RETURN -d 202.38.74.47
+-A user-filt -j REJECT
+COMMIT

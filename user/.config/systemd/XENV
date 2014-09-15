@@ -1,0 +1,10 @@
+DISPLAY=:0
+
+LANG=zh_CN.UTF-8
+LC_ALL=zh_CN.UTF-8
+
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS="@im=fcitx"
+
+XDG_RUNTIME_DIR=/run/user/1000
