@@ -16,8 +16,6 @@ iptables
 iproute2
 iputils
 iso-codes
-man-db
-man-pages
 midori
 mkinitcpio
 mkinitcpio-nfs-utils
@@ -25,7 +23,6 @@ ndisc6
 nyancat-git
 openbox
 openssh
-pciutils
 procps-ng
 rsync
 sakura
