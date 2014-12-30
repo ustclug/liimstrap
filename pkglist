@@ -27,14 +27,16 @@ openbox
 openssh
 pciutils
 procps-ng
-psmisc
+rsync
 sakura
 scrot
 slim
+sed
 systemd-sysvcompat
 tar
 ttf-arphic-uming
 ttf-droid
+unionfs-fuse
 usbutils
 vim-minimal
 wqy-zenhei

@@ -15,14 +15,16 @@ while true; do
 done
 
 echo "Now restart user slim..."
-su $LIIMSUSER -c 'systemctl --user exit'
+XDG_RUNTIME_DIR=/run/user/$(id -u $LIIMSUSER) \
+    su $LIIMSUSER -c 'systemctl --user exit'
 systemctl stop slim
 sleep 2
 
-sync
-rm -rf "/aufs/rw/home"
-sync
+echo "Reset /home..."
+su $LIIMSUSER -c "rsync -a --delete /RO/home/$LIIMSUSER/ /home/$LIIMSUSER/"
+sleep 2
 
 systemctl daemon-reload
 systemctl start slim
 echo "Done!"
+
