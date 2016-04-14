@@ -12,7 +12,7 @@ function enserv () {
 }
 
 function inspkg () {
-    pacstrap -C "$BASE/etc/pacman.conf" -c -d "$ROOT" "$@"
+    pacstrap -c -C "$BASE/etc/pacman.conf" -c -d "$ROOT" "$@"
 }
 
 ROOT="$1"
