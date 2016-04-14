@@ -20,7 +20,7 @@ midori
 mkinitcpio
 mkinitcpio-nfs-utils
 ndisc6
-nyancat-git
+nyancat
 openbox
 openssh
 procps-ng
@@ -36,6 +36,7 @@ ttf-droid
 unionfs-fuse
 usbutils
 vim-minimal
+which
 wqy-zenhei
 xcompmgr
 xf86-video-fbdev
