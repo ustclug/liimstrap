@@ -10,10 +10,13 @@
 202.38.93.94  pxe.ustc.edu.cn
 202.38.64.246 mis.teach.ustc.edu.cn
 
-2001:da8:d800:71::638 img1.douban.com
-2001:da8:d800:71::638 img2.douban.com
-2001:da8:d800:71::638 img3.douban.com
-2001:da8:d800:71::638 img4.douban.com
-2001:da8:d800:71::638 img5.douban.com
-2001:da8:d800:71::638 service.t.sina.com.cn
+# impossible to access without WangLuoTong
+# maybe we could set up a proxy for them
+2001:da8:d800:931::94  img1.douban.com
+2001:da8:d800:931::94  img2.douban.com
+2001:da8:d800:931::94  img3.douban.com
+2001:da8:d800:931::94  img4.douban.com
+2001:da8:d800:931::94  img5.douban.com
+2001:da8:d800:931::94  service.t.sina.com.cn
+
 127.0.0.1 cloud.pinyin.sogou.com
