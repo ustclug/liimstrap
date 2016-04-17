@@ -106,6 +106,9 @@ chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
+# prevent sogou from modifying fcitx config
+chmod a-w "$BASE/user/." "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
+
 # kernel
 for ins in $BASE/initcpio/*.install; do
     filename=$(basename "$ins")
