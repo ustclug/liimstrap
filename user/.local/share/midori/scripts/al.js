@@ -3,6 +3,7 @@
 // @namespace     http://www.webmonkey.com
 // @description   A basic example of Greasemonkey that causes an alert at each page load.
 // @include       http://opac.lib.ustc.edu.cn/opac/search.php
+// @include       http://opac.lib.ustc.edu.cn/opac/search_adv.php
 // @include       http://lib.ustc.edu.cn/LIIMS/
 // @include       *://email.ustc.edu.cn/*
 // ==/UserScript==

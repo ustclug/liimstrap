@@ -16,7 +16,7 @@ iptables
 iproute2
 iputils
 iso-codes
-midori
+midori-gtk2
 mkinitcpio
 mkinitcpio-nfs-utils
 ndisc6
