@@ -25,12 +25,12 @@ openbox
 openssh
 procps-ng
 rsync
-sakura
 scrot
 slim
 sed
 systemd-sysvcompat
 tar
+terminus-font
 ttf-arphic-uming
 ttf-droid
 unionfs-fuse
@@ -44,4 +44,5 @@ xf86-video-intel
 xf86-video-nouveau
 xf86-video-vesa
 xorg-server
+xterm
 yaourt
