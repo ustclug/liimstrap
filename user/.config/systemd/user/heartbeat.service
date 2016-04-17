@@ -1,5 +1,7 @@
 [Unit]
 Description=LIIMS heartbeat.
+Requires=fcitx.service midori.service
+After=fcitx.service midori.service
 
 [Service]
 Type=oneshot
