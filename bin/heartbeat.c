@@ -49,7 +49,7 @@ char *getVersion ()
 
     fclose(fin);
 
-    char *p = strstr(cmdline, "squashfs=");
+    char *p = strstr(cmdline, "version=");
     if (!p)
     {
         char *ret = (char*) malloc(strlen("devel" + 1));
@@ -58,7 +58,7 @@ char *getVersion ()
     }
     else
     {
-        char *st = p + strlen("squashfs=");
+        char *st = p + strlen("version=");
         while (*p && *p != ' ' && *p != '\n')
             p++;
         *p = '\0';
