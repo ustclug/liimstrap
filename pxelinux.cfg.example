@@ -4,7 +4,7 @@ prompt 0
 LABEL  liims
 KERNEL http://pxe.ustc.edu.cn/boot/bin/liims/liims141230/vmlinuz
 INITRD http://pxe.ustc.edu.cn/boot/bin/liims/liims141230/initrd.img
-APPEND nfsserver=[2001:da8:d800:931::94] nfsserver2=202.38.93.94 nfspath=/nfsroot/liims/liims141230 squashfs=liims141230.sfs
+APPEND nfsserver=[2001:da8:d800:931::94] nfsserver2=202.38.93.94 nfspath=/nfsroot/liims/liims141230 squashfs=root.sfs version=stable
 
 # directly use NFS as root
 LABEL  liims_nfs
