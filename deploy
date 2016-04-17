@@ -11,13 +11,15 @@ if [[ ! -d "$ROOT" || ! -d "$2" ]]; then
     exit 1
 fi
 
-mkdir $DEST
-mv $1/boot/vmlinuz* $DEST/vmlinuz
-rm $1/boot/initramfs*-fallback.img
-mv $1/boot/initramfs*.img $DEST/initrd.img
-rm -rf $1/usr/share/locale/!(zh_CN|en|en_US)
-rm -rf $1/usr/share/gtk-docs/*
-rm -rf $1/usr/share/doc/*
-rm -rf $1/usr/share/man/*
+KERNEL=$(ls $ROOT/boot | grep -m1 -Po "^vmlinuz-\K\S+")
 
-mksquashfs $1/ $DEST/$DEST.sfs -comp lzo -Xcompression-level 9 -b 32k
+mkdir $DEST
+cp $1/boot/vmlinuz-${KERNEL} $DEST/vmlinuz
+cp $1/boot/initramfs-${KERNEL}.img $DEST/initrd.img
+#rm -rf $1/usr/share/locale/!(zh_CN|en|en_US)
+
+mksquashfs $1/ $DEST/root.sfs -comp lzo -Xcompression-level 9 -b 32k \
+    -e 'boot/' \
+    -e 'usr/share/gtk-docs/' \
+    -e 'usr/share/doc/' \
+    -e 'usr/share/man/'
