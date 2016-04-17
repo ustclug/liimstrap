@@ -96,6 +96,10 @@ enserv cronie
 cp "$BASE/etc/slim.conf" "$ROOT/etc/"
 enserv slim
 
+# netdata
+enserv netdata
+cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+
 # user specific
 chdo userdel -fr "$LIIMSUSER" || true
 chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"

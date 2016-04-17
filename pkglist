@@ -20,6 +20,7 @@ midori
 mkinitcpio
 mkinitcpio-nfs-utils
 ndisc6
+netdata
 nyancat
 openbox
 openssh
