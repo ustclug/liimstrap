@@ -123,5 +123,4 @@ for hook in $BASE/initcpio/*.hook; do
 done
 
 install -Dm644 "$BASE/initcpio/mkinitcpio.conf" "$ROOT/etc/mkinitcpio.conf"
-inspkg linux
-
+inspkg linux-lts
