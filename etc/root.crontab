@@ -1,2 +1,2 @@
-30 0 * * * /sbin/reboot
+0 0 * * Sat /sbin/reboot
 30 * * * * /liims/bin/reset.sh 
