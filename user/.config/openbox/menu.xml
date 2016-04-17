@@ -4,7 +4,7 @@
 
 <menu id="root-menu" label="Openbox 3">
   <item label="终端">
-    <action name="Execute"><execute>sakura -e su</execute></action>
+    <action name="Execute"><execute>uxterm -rv -e su</execute></action>
   </item>
   <item label="退出菜单">
   </item>

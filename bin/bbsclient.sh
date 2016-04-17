@@ -4,9 +4,10 @@ X_DISPLAY=":0"
 X_AUTHFILE="/home/$LIIMSUSER/.Xauthority"
 
 echo "Start BBS client now..."
-env LC_ALL=zh_CN.GBK \
-    sakura -m -x \
-    "bash -c 'echo Please wait 10 seconds...; telnet -4 bbs.ustc.edu.cn'" &
+xterm -en gbk -fullscreen -cjk_width -rv \
+      -fa "Terminus:style=Regular:size=14" \
+      -fd "WenQuanYi Bitmap Song:size=14" \
+      -e telnet bbs.ustc.edu.cn &
 PID=$!
 
 while true; do
@@ -19,7 +20,7 @@ while true; do
         echo "> subprocess still running..."
         test $IDLE -ge 60000 && break
     else
-        "Closed by user!"
+        echo "Closed by user!"
         exit 0
     fi
 done
@@ -27,4 +28,3 @@ done
 echo "Automatic close after timeout..."
 kill $PID
 echo "Done!"
-

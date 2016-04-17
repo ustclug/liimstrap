@@ -207,9 +207,15 @@
     <action name="Execute">
       <startupnotify>
         <enabled>true</enabled>
-        <name>sakura</name>
+        <name>xterm</name>
       </startupnotify>
-      <command>sakura -e su</command>
+      <command>xterm -e su</command>
+    </action>
+  </keybind>
+
+  <keybind key="W-Tab">
+    <action name="NextWindow">
+        <allDesktops>yes</allDesktops>
     </action>
   </keybind>
 </keyboard>
@@ -650,7 +656,7 @@
     <layer>above</layer>
   </application>
 
-  <application name="sakura">
+  <application name="xterm">
     <layer>above</layer>
   </application>
 

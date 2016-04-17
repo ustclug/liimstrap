@@ -40,7 +40,7 @@ Plugin {
         item {
             icon = terminal
             name = 彩虹喵喵喵喵喵～
-            action = sakura -m -x "nyancat -f 100"
+            action = xterm -fullscreen -e nyancat -f 100
         }
  
         item {
