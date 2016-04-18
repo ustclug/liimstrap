@@ -107,7 +107,9 @@ cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
 # prevent sogou from modifying fcitx config
-chmod a-w "$BASE/user/." "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
+chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
+# prevent systemd from changing network interface name
+chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
 # kernel
 for ins in $BASE/initcpio/*.install; do
