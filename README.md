@@ -9,7 +9,7 @@
 首先，必须要用 Arch Linux。然后需要安装以下软件包：
 
 ```
-pacman -S arch-install-scripts base-devel squashfs-tools
+pacman -S arch-install-scripts base-devel squashfs-tools libx11 libxss
 ```
 
 ## 生成
