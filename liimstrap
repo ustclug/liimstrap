@@ -58,7 +58,7 @@ cc "$BASE/bin/heartbeat.c" -o "$ROOT/liims/bin/heartbeat" -lcurl
 cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -lX11 -lXext -lXss
 
 # SSH login for root
-echo "PasswordAuthentication no" > "$ROOT/etc/ssh/sshd_config"
+cp $BASE/etc/ssh/* "$ROOT/etc/ssh"
 echo -e "$ROOTPASSWD\n$ROOTPASSWD" | chdo passwd
 mkdir -p "$ROOT/root/.ssh"
 chmod 700 "$ROOT/root/.ssh"
