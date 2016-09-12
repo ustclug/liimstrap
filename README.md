@@ -34,3 +34,9 @@ sudo ./deploy [ROOT] [DEST]
 * `root.sfs` 是根目录的镜像
 
 PXELINUX 配置参见 `pxelinux.cfg.example` 文件。
+
+## 从docker构建
+
+```
+docker run -it --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap
+```
