@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>图书馆查询机系统——使用说明</title>
+     <link href="css/bootstrap.min.css" rel="stylesheet">
+     <link href="css/custom.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>图书馆查询机系统——使用说明 <a href="index.html"><span class="label label-primary">回到主页</span></a></h1>
+      </div>
+
+      <div class="row">
+        <h2>软件说明</h2>
+        <p>查询机系统基于 Linux 操作系统，经过适当配置以限制功能、并方便同学们使用。</p>
+        <p>
+          用户可以在查询机上使用下列程序：
+          <strong>网页浏览器</strong>、
+          <strong>中文输入法（拼音/五笔）</strong>、
+          <strong>应用菜单中的小程序</strong>。
+        </p>
+
+        <h4>操作系统</h4>
+        <p>查询机系统基于 Archlinux 发行版，经过 Linux 用户协会技术人员配置，通过网络启动服务部署在图书馆查询机上。</p>
+        <p>查询机系统的程序全部存储在网络文件系统中。因此，一旦网络中断，查询机就完全无法使用了。</p>
+        <p>为了避免用户误操作导致配置更改，并保证系统稳定。图形界面每小时重置一次（无用户操作时），所有配置都会被初始化。</p>
+
+        <h4>网页浏览器</h4>
+        <p>查询机预装了 Midori 网页浏览器，用户可以通过浏览器访问：</p>
+        <ul>
+          <li>中国科学技术大学图书馆书目检索系统（<a href="http://opac.lib.ustc.edu.cn/">opac.lib.ustc.edu.cn</a>）</li>
+          <li>科大邮箱网页客户端（<a href="https://email.ustc.edu.cn/">email.ustc.edu.cn</a>）</li>
+          <li>图书馆主页及其子页面（<a href="http://lib.ustc.edu.cn/">lib.ustc.edu.cn</a>）</li>
+          <li>图书馆栗子网（<a href="http://liser.ustc.edu.cn/">liser.ustc.edu.cn</a>）</li>
+          <li>瀚海星云 BBS（<a href="http://bbs.ustc.edu.cn/">bbs.ustc.edu.cn</a>）</li>
+          <li>西区图书馆未来学习中心学习空间预约系统（<a href="http://ic.lib.ustc.edu.cn/">ic.lib.ustc.edu.cn</a>）</li>
+          <li>科大统一验证系统（<a href="https://passport.ustc.edu.cn/">passport.ustc.edu.cn</a>）</li>
+        </ul>
+        <p>浏览器每分钟会刷新一次，关闭所有标签页并打开主页。请不要随意调整浏览器配置，以免影响查询机正常使用。</p>
+
+        <h4>输入法</h4>
+        <p>查询机预装了 Fcitx 输入法框架，并配有以下输入法：</p>
+        <ul>
+          <li>搜狗拼音输入法（官方 Linux 版本）</li>
+          <li>Fcitx 内置拼音输入法</li>
+          <li>五笔输入法</li>
+        </ul>
+        <p>用户可以通过点击右下角图标选择输入法，也可以使用
+          <button type="button" class="btn btn-default btn-xs">Ctrl</button> +
+          <button type="button" class="btn btn-default btn-xs">空格</button>
+          组合键切换输入法状态（中文/英文）。
+        </p>
+        <p>如果搜狗拼音输入法无法使用，请尝试使用备用的拼音输入法（Fcitx 内置）。后者功能较弱但更为稳定。</p>
+
+        <h4>其他应用</h4>
+        <p>系统内置了一些小应用，用户可以通过左下角的菜单打开这些应用。</p>
+        <ul>
+          <li><strong>瀚海星云 BBS 客户端</strong>：纯正的瀚海星云 Telnet 客户端。为了保护您的隐私，请在使用后及时关闭程序。</li>
+          <li><strong>彩虹喵</strong>：Nyanyanyanyan…… 持续100帧，大约10喵。</li>
+          <li><strong>重置浏览器</strong>：重启浏览器，如果浏览器坏掉了可以试一试。</li>
+        </ul>
+
+        <h2>故障报告</h2>
+        <p>如果查询机出现故障，您可以通过以下渠道向开发人员反应：</p>
+        <ul>
+          <li>向 lug@ustc.edu.cn 发送邮件</li>
+          <li>到西区图书馆二楼 206 室（LUG 活动室）反映情况</li>
+          <li>在瀚海星云 BBS 图书馆（library）板块或 linux 板块发帖报告</li>
+        </ul>
+        <p>以下故障不属于开发人员之责任：</p>
+        <ul>
+          <li>查询机断电或未开机</li>
+          <li>所在阅览室有线网络瘫痪，导致查询机无法使用</li>
+        </ul>
+        <p>如果您对查询机的开发有什么意见或者建议，也欢迎联系开发人员。</p>
+      </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
