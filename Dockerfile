@@ -1,4 +1,4 @@
-FROM smartentry/archlinux:0.3.2
+FROM smartentry/archlinux:0.3.5
 
 MAINTAINER Yifan Gao <docker@yfgao.com>
 
@@ -9,7 +9,3 @@ ENV ASSETS_DIR=/opt/liims/.docker
 RUN smartentry.sh build
 
 VOLUME /srv
-
-WORKDIR /opt/liims
-
-CMD ["/usr/bin/run.sh"]

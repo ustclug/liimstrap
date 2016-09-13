@@ -2,12 +2,8 @@
 
 echo 'Server = http://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 
-cat << EOF >> /etc/pacman.conf
-[archlinuxcn]
-SigLevel = Optional TrustedOnly
-Server = http://mirrors.ustc.edu.cn/archlinuxcn/x86_64
-EOF
-
-pacman -Syy && pacman -S --noconfirm archlinuxcn-keyring
+pacman -Syy
 
 pacman -S --noconfirm arch-install-scripts base-devel squashfs-tools libx11 libxss
+
+pacman -Scc --noconfirm
