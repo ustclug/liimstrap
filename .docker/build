@@ -7,3 +7,4 @@ pacman -Syy
 pacman -S --noconfirm arch-install-scripts base-devel squashfs-tools libx11 libxss
 
 pacman -Scc --noconfirm
+rm -rf /var/cache/pacman/pkg/*
