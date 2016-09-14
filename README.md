@@ -8,15 +8,27 @@
 
 首先，必须要用 Arch Linux。然后需要安装以下软件包：
 
-```
+```sh
 pacman -S arch-install-scripts base-devel squashfs-tools libx11 libxss
+```
+
+添加ArchLinuxCN源：
+
+```sh
+cat << EOF >> /etc/pacman.conf
+[archlinuxcn]
+SigLevel = Optional TrustedOnly
+Server = http://mirrors.ustc.edu.cn/archlinuxcn/x86_64
+EOF
 ```
 
 ## 生成
 
-```
+```sh
 sudo ./liimstrap [ROOT]
 ```
+
+[ROOT]是一个存放镜像根文件系统的目录。
 
 可以把 root 密码放到一个名为 .rootpasswd 的文件里，该文件和 liimstrap 脚本放在同一级文件夹下。
 
@@ -24,7 +36,7 @@ sudo ./liimstrap [ROOT]
 
 ## 压成 SqaushFS 镜像
 
-```
+```sh
 sudo ./deploy [ROOT] [DEST]
 ```
 
@@ -37,6 +49,6 @@ PXELINUX 配置参见 `pxelinux.cfg.example` 文件。
 
 ## 从docker构建
 
-```
+```sh
 docker run -it --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap
 ```
