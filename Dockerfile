@@ -1,4 +1,4 @@
-FROM smartentry/archlinux:0.3.5
+FROM smartentry/archlinux:0.3.7
 
 MAINTAINER Yifan Gao <docker@yfgao.com>
 
