@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-apk add --no-cache nginx
-
-rm -rf /var/www/.docker
