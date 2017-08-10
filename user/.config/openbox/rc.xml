@@ -218,6 +218,16 @@
         <allDesktops>yes</allDesktops>
     </action>
   </keybind>
+  <keybind key="C-A-Prior">
+	  <action name="Execute">
+		  <command>pactl -- set-sink-volume 0 +5%</command>
+	  </action>
+  </keybind>
+  <keybind key="C-A-Next">
+	  <action name="Execute">
+		  <command>pactl -- set-sink-volume 0 -5%</command>
+	  </action>
+  </keybind>
 </keyboard>
 
 <mouse>

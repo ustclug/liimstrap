@@ -3,7 +3,7 @@ Description=Midori
 
 [Service]
 EnvironmentFile=%h/.config/systemd/XENV
-ExecStart=/usr/bin/midori -i 60
+ExecStart=/usr/bin/midori
 KillSignal=SIGKILL
 SuccessExitStatus=SIGKILL
 Restart=always

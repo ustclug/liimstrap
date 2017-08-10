@@ -5,7 +5,9 @@ cronie
 dhcpcd
 dnsutils
 fbpanel
-fcitx-gtk2
+pulseaudio
+alsa-utils
+fcitx-gtk3
 fcitx-sogoupinyin
 flashplugin
 gnome-icon-theme
@@ -16,7 +18,7 @@ iptables
 iproute2
 iputils
 iso-codes
-midori-gtk2
+midori
 mkinitcpio
 mkinitcpio-nfs-utils
 ndisc6

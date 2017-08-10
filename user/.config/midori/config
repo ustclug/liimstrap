@@ -10,13 +10,12 @@ default-charset=UTF-8
 last-window-width=700
 last-window-height=451
 last-window-state=MIDORI_WINDOW_MAXIMIZED
-inactivity-reset=60
 location-entry-search=http://opac.lib.ustc.edu.cn/opac/search_adv_result.php?rd_book=opac&q0=%s&sType0=any
 show-statusbar=false
 toolbar-items=Back,NextForward,Homepage,ReloadStop,Location,Search,Trash,
 zoom-level=1.2000000476837158
 open-tabs-in-the-background=false
-homepage=http://pxe.ustc.edu.cn/liims/
+homepage=http://sls.smartstudy.com/smartstudy_ustc
 tabhome=about:home
 download-folder=/home/test
 maximum-cookie-age=0
@@ -29,5 +28,3 @@ proxy-type=MIDORI_PROXY_NONE
 user-agent=Mozilla/5.0 (X11; Linux) AppleWebKit/538.15 (KHTML, like Gecko) Chrome/18.0.1025.133 Safari/538.15 Midori/0.5
 
 [extensions]
-libnsplugin-manager.so/libflashplayer.so=true
-libaddons.so=true

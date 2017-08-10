@@ -12,4 +12,5 @@ xcompmgr -n &
 systemctl --user start midori
 systemctl --user start fcitx
 systemctl --user start sogou-qimpanel
+systemctl --user start pulseaudio
 exec openbox-session

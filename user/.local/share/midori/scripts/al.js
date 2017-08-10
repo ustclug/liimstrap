@@ -8,5 +8,4 @@
 // @include       *://email.ustc.edu.cn/*
 // ==/UserScript==
 
-alert('按下「Ctrl + 空格」激活输入法；点击右下角输入法按钮选择其他输入法。');
-
+alert('按下「Ctrl + 空格」激活输入法；点击右下角输入法按钮选择其他输入法。Ctrl+Alt+PageUp: 增大音量 Ctrl+Alt+PageDown: 降低音量');
