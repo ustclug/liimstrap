@@ -9,6 +9,8 @@
 202.141.162.123  lug.ustc.edu.cn
 202.38.93.94  pxe.ustc.edu.cn
 202.38.64.246 mis.teach.ustc.edu.cn
+202.141.162.2 ic.lib.ustc.edu.cn
+101.201.62.96 sls.smartstudy.com
 
 # impossible to access without WangLuoTong
 # maybe we could set up a proxy for them
