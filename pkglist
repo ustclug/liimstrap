@@ -7,6 +7,11 @@ dnsutils
 fbpanel
 pulseaudio
 alsa-utils
+gst-plugins-good
+gst-plugins-bad
+gst-plugins-base
+gst-plugins-base-libs
+gst-libav
 fcitx-gtk3
 fcitx-sogoupinyin
 flashplugin
