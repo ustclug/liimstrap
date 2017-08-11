@@ -83,9 +83,9 @@ echo -e "en_US.UTF-8 UTF-8\nzh_CN.GBK GBK\nzh_CN.UTF-8 UTF-8" > \
         "$ROOT/etc/locale.gen"
 chdo locale-gen
 
-# iptables
-cp "$BASE/etc/iptables/"*.rules "$ROOT/etc/iptables/"
-enserv iptables.service ip6tables.service
+## iptables
+#cp "$BASE/etc/iptables/"*.rules "$ROOT/etc/iptables/"
+#enserv iptables.service ip6tables.service
 
 # crontab
 cp "$BASE/etc/root.crontab" "$ROOT/tmp/"
@@ -99,6 +99,9 @@ enserv slim
 # netdata
 enserv netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+
+# pulseadio
+cp -r "$BASE/etc/pulse/" "$ROOT/etc/"
 
 # user specific
 chdo userdel -fr "$LIIMSUSER" || true
