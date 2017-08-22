@@ -13,4 +13,6 @@ systemctl --user start midori
 systemctl --user start fcitx
 systemctl --user start sogou-qimpanel
 systemctl --user start pulseaudio
+sleep 2
+/usr/bin/pacmd set-sink-port `pacmd list-sinks | sed -e '/name:/!d' | head -n 1 | sed -e 's/.*<\(.*\)>/\1/'` analog-output-headphones
 exec openbox-session
