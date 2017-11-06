@@ -1,0 +1,10 @@
+[Unit]
+Description=firefox
+
+[Service]
+EnvironmentFile=%h/.config/systemd/XENV
+ExecStart=/usr/bin/firefox
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+Restart=always
+RestartSec=2

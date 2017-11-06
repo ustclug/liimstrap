@@ -6,6 +6,7 @@ dhcpcd
 dnsutils
 fbpanel
 pulseaudio
+pavucontrol
 alsa-utils
 gst-plugins-good
 gst-plugins-bad
@@ -23,7 +24,7 @@ iptables
 iproute2
 iputils
 iso-codes
-midori
+firefox
 mkinitcpio
 mkinitcpio-nfs-utils
 ndisc6

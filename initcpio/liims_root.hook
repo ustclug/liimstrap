@@ -56,7 +56,7 @@ liims_mount_handler() {
     root_emptydirs="boot dev mnt proc run srv sys tmp"
     root_links="bin lib lib64 sbin"
     root_rodirs="root usr opt liims"
-    root_rwdirs="etc home var"
+    root_rwdirs="etc home var usr"
 
     for d in $root_emptydirs; do
         mkdir -p "${newroot}/$d"

@@ -32,6 +32,12 @@ Plugin {
         icon = start-here
 
         item {
+            icon = preferences-system
+            name = 声音设置
+            action = pavucontrol
+        }
+
+        item {
             icon = applications-internet
             name = 瀚海星云客户端
             action = /liims/bin/bbsclient.sh
@@ -46,9 +52,18 @@ Plugin {
         item {
             icon = ac-adapter
             name = 重置浏览器
-            action = systemctl --user restart midori
+            action = systemctl --user restart firefox
         }
     }
+}
+
+Plugin {
+    type = tclock
+	config {
+	    ClockFmt = %t左侧是开始菜单，可设置声音。Win+Tab切换窗口，Ctrl+Space切换输入法
+		ShowCalendar = false
+		ShowTooltip = false
+	}
 }
 
 Plugin {

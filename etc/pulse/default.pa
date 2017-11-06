@@ -20,8 +20,6 @@
 
 .fail
 
-### This is a module used to switch the output sound to the newly connected device.
-load-module module-switch-on-connect
 ### Automatically restore the volume of streams and devices
 load-module module-device-restore
 load-module module-stream-restore
@@ -31,8 +29,10 @@ load-module module-card-restore
 ### stored in /usr/share/application
 load-module module-augment-properties
 
+### This is a module used to switch the output sound to the newly connected device.
+load-module module-switch-on-connect
 ### Should be after module-*-restore but before module-*-detect
-load-module module-switch-on-port-available
+#load-module module-switch-on-port-available
 
 ### Load audio drivers statically
 ### (it's probably better to not load these drivers manually, but instead

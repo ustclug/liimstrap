@@ -4,7 +4,7 @@
         Copy the file to $HOME/.config/openbox/ instead. -->
 
 <openbox_config xmlns="http://openbox.org/3.4/rc"
-		xmlns:xi="http://www.w3.org/2001/XInclude">
+        xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <resistance>
   <strength>10</strength>
@@ -219,14 +219,14 @@
     </action>
   </keybind>
   <keybind key="C-A-Prior">
-	  <action name="Execute">
-		  <command>pactl -- set-sink-volume 0 +5%</command>
-	  </action>
+      <action name="Execute">
+          <command>pactl -- set-sink-volume 0 +5%</command>
+      </action>
   </keybind>
   <keybind key="C-A-Next">
-	  <action name="Execute">
-		  <command>pactl -- set-sink-volume 0 -5%</command>
-	  </action>
+      <action name="Execute">
+          <command>pactl -- set-sink-volume 0 -5%</command>
+      </action>
   </keybind>
 </keyboard>
 
@@ -659,11 +659,15 @@
   # end of the example
 -->
 
-  <application name="midori4" type="normal">
+  <application class="Firefox">
     <focus>yes</focus>
     <maximized>true</maximized>
     <decor>no</decor>
     <layer>above</layer>
+  </application>
+
+  <application name='pavucontrol'>
+      <layer>above</layer>
   </application>
 
   <application name="xterm">
