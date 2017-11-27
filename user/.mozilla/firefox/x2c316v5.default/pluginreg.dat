@@ -7,8 +7,8 @@ Arch:x86_64-gcc3:$
 [PLUGINS]
 libflashplayer.so:$
 /usr/lib/mozilla/plugins/libflashplayer.so:$
-27.0.0.183:$
-1508948486000:0:0:0:$
+27.0.0.187:$
+1510650441000:0:0:0:$
 Shockwave Flash 27.0 r0:$
 Shockwave Flash:$
 2
