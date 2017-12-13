@@ -674,6 +674,10 @@
     <layer>above</layer>
   </application>
 
+  <application name="wpp">
+    <layer>above</layer>
+  </application>
+
 </applications>
 
 </openbox_config>
