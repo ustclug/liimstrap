@@ -26,7 +26,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             b'<title>Monitor</title>'
             b'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha256-L/W5Wfqfa0sdBNIKN9cG6QA5F2qx4qICmU2VgLruv9Y=" crossorigin="anonymous">'
             b'<meta charset="UTF-8">'
-            # b'<style>th, td { padding: 2px; }</style>'
+            b'<style>.table th, .table td { border-top: 1px solid black !important; }</style>'
             b'</head>'
             b'<body><div class="container p-3">')
 
