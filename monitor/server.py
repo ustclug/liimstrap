@@ -24,21 +24,23 @@ class HTTPHandler(BaseHTTPRequestHandler):
             b'<html>'
             b'<head>'
             b'<title>Monitor</title>'
+            b'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha256-L/W5Wfqfa0sdBNIKN9cG6QA5F2qx4qICmU2VgLruv9Y=" crossorigin="anonymous">'
             b'<meta charset="UTF-8">'
-            b'<style>th, td { padding: 2px }</style>'
+            # b'<style>th, td { padding: 2px; }</style>'
             b'</head>'
-            b'<body>')
+            b'<body><div class="container p-3">')
 
-        self.wfile.write(b"<table border='1'>")
+        self.wfile.write(b'<table class="table" border="1">')
         self.wfile.write(
             b"<tr>"
-            b"<th>Location</th>"\
-            b"<th>Version</th>"\
-            b"<th>IP address</th>"\
-            b"<th>Last reply</th>"\
-            b"<th>Uptime</th>"\
+            b"<th>Location</th>"
+            b"<th>Version</th>"
+            b"<th>MAC address</th>"
+            b"<th>IP address</th>"
+            b"<th>Last reply</th>"
+            b"<th>Uptime</th>"
             b"<th>Status</th></tr>")
- 
+
         for mac, data in clients_data.items():
             now = time.time()
             last_reply = data.get("time", 0.0)
@@ -50,12 +52,13 @@ class HTTPHandler(BaseHTTPRequestHandler):
             else:
                 status_color = "#01FF70"
                 status = "Ok"
-     
- 
+
+
             self.wfile.write(b"<tr>")
             self.wfile.write(
                 "<td>{name}</td>"\
                 "<td>{version}</td>"\
+                "<td>{mac}</td>"\
                 "<td>{ip}</td>"\
                 "<td>{time}</td>"\
                 "<td>{uptime}</td>"\
@@ -63,6 +66,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 .format(
                     name = data.get("name"),
                     version = data.get("version"),
+                    mac = ":".join([mac[i:i + 2] for i in range(0, len(mac), 2)]),
                     ip = data.get("ip"),
                     time = time.strftime('%Y-%m-%d %H:%M:%S',
                                          time.localtime(last_reply)),
@@ -74,7 +78,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             )
             self.wfile.write(b"</tr>")
 
-        self.wfile.write(b"</table></body>")
+        self.wfile.write(b"</table></div></body>")
 
     def do_POST(self):
         form = cgi.FieldStorage(
