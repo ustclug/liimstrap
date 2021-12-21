@@ -4,7 +4,6 @@
 -A user-filt -j RETURN -d 202.38.64.17,202.38.64.7
 -A user-filt -j RETURN -d opac.lib.ustc.edu.cn
 -A user-filt -j RETURN -d lib.ustc.edu.cn
--A user-filt -j RETURN -d liser.ustc.edu.cn
 -A user-filt -j RETURN -d email.ustc.edu.cn
 -A user-filt -j RETURN -d auth.ahadl.org
 -A user-filt -j RETURN -d bbs.ustc.edu.cn
