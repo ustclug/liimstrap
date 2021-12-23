@@ -52,7 +52,7 @@ char *getVersion ()
     char *p = strstr(cmdline, "version=");
     if (!p)
     {
-        char *ret = (char*) malloc(strlen("devel" + 1));
+        char *ret = (char*) malloc(strlen("devel") + 1);
         strcpy(ret, "devel");
         return ret;
     }
