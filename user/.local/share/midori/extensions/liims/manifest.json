@@ -1,12 +1,13 @@
 {
-    "manifest_version": 2,
-    "name": "LIIMS IM Tutorial",
-    "version": "1.0",
-    "description": "Teach user how to use fcitx in LIIMS",
-    "content_scripts": [
-      {
-        "js": ["customUserScriptAPIs.js"]
-      }
-    ]
-  }
-  
+  "manifest_version": 2,
+  "name": "LIIMS IM Tutorial",
+  "version": "1.0",
+  "description": "Teach user how to use fcitx in LIIMS",
+  "content_scripts": [
+    {
+      "js": [
+        "customUserScriptAPIs.js"
+      ]
+    }
+  ]
+}

@@ -649,7 +649,7 @@
   # end of the example
 -->
 
-  <application name="midori4" type="normal">
+  <application name="midori" type="normal">
     <focus>yes</focus>
     <maximized>true</maximized>
     <decor>no</decor>
