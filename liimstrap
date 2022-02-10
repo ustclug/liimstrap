@@ -8,7 +8,7 @@ function chdo () {
 } 
 
 function enserv () {
-    chroot $ROOT systemctl enable "$@"
+    chroot "$ROOT" systemctl enable "$@"
 }
 
 function inspkg () {
@@ -89,14 +89,13 @@ echo -e "$ROOTPASSWD\n$ROOTPASSWD" | chdo passwd
 mkdir -p "$ROOT/root/.ssh"
 chmod 700 "$ROOT/root/.ssh"
 install -Dm 600 "$BASE/etc/authorized_keys" "$ROOT/root/.ssh/authorized_keys"
-enserv sshd.socket
+enserv ssh
 
 # resolv.conf
 echo "nameserver 2001:da8:d800::17" > "$ROOT/etc/resolv.conf"
 cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
 
 # dhcpcd
-#echo -e "\nnoipv6\n" >> "$ROOT/etc/dhcpcd.conf"
 enserv dhcpcd
 
 # time and NTP
@@ -110,32 +109,32 @@ echo -e "en_US.UTF-8 UTF-8\nzh_CN.GBK GBK\nzh_CN.UTF-8 UTF-8" > \
 chdo locale-gen
 
 # iptables
-cp "$BASE/etc/iptables/"*.rules "$ROOT/etc/iptables/"
-enserv iptables.service ip6tables.service
+mkdir -p "$ROOT/etc/iptables"
+cp "$BASE/etc/iptables/iptables.rules" "$ROOT/etc/iptables/rules.v4"
+cp "$BASE/etc/iptables/ip6tables.rules" "$ROOT/etc/iptables/rules.v6"
+enserv iptables.service
 
 # crontab
 cp "$BASE/etc/root.crontab" "$ROOT/tmp/"
 chdo crontab "/tmp/root.crontab"
-enserv cronie
+enserv cron
 
 # slim
 cp "$BASE/etc/slim.conf" "$ROOT/etc/"
-enserv slim
+chdo systemctl set-default graphical.target
 
 # netdata
 enserv netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+
+# prevent systemd from changing network interface name
+chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
 # user specific
 chdo userdel -fr "$LIIMSUSER" || true
 chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
-
-# prevent sogou from modifying fcitx config
-chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
-# prevent systemd from changing network interface name
-chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
 # kernel
 for ins in $BASE/initcpio/*.install; do
