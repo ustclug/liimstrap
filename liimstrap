@@ -137,17 +137,5 @@ cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
 # kernel
-for ins in $BASE/initcpio/*.install; do
-    filename=$(basename "$ins")
-    filename="${filename%.*}"
-    install -Dm644 "$ins" "$ROOT/usr/lib/initcpio/install/$filename"
-done
-
-for hook in $BASE/initcpio/*.hook; do
-    filename=$(basename "$hook")
-    filename="${filename%.*}"
-    install -Dm644 "$hook" "$ROOT/usr/lib/initcpio/hooks/$filename"
-done
-
-install -Dm644 "$BASE/initcpio/mkinitcpio.conf" "$ROOT/etc/mkinitcpio.conf"
-inspkg linux-lts
+# TODO: initramfs.conf
+inspkg linux-image-amd64
