@@ -12,7 +12,7 @@ function enserv () {
 }
 
 function inspkg () {
-    pacstrap -c -C "$BASE/etc/pacman.conf" -c -d "$ROOT" "$@"
+    chroot "$ROOT" apt-get install --no-install-recommends --yes "$@"
 }
 
 ROOT="$1"
@@ -40,9 +40,35 @@ else
     done
 fi
 
-# pacman
-install -Dm 644 "$BASE/etc/pacman.conf" "$ROOT/etc/pacman/pacman.conf"
-inspkg $(cat "$BASE/pkglist")
+# debootstrap
+debootstrap bullseye "$ROOT" http://mirrors.ustc.edu.cn/debian/
+mount proc /liims/proc -t proc
+mount sysfs /liims/sys -t sysfs
+
+# apt
+install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+# install packages
+# following packages may need interactive operations and should take care
+# batch 1: X-related packages
+inspkg xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau\
+    xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr
+# batch 2: cli tools
+inspkg busybox cron dhcpcd5 dnsutils htop inetutils-ftp inetutils-ping \
+    inetutils-telnet iptables iptables-persistent iproute2 \
+    iputils-arping iputils-clockdiff iputils-tracepath iso-codes \
+    initramfs-tools ndisc6 netdata nyancat openssh-client openssh-server \
+    procps rsync scrot sed tar unionfs-fuse usbutils vim
+# batch 3: desktop components
+inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
+    gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
+    fonts-wqy-zenhei fbpanel xfonts-terminus fcitx-pinyin fcitx-table-wubi fcitx-ui-classic
+# batch 4: misc
+inspkg bash-completion locales net-tools
+# batch 5: extra packages that not in original list
+inspkg x11-utils libcurl4 curl ca-certificates dbus-x11
+# batch 6: custom app
+chdo curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
+inspkg /tmp/midori.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
