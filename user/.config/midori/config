@@ -3,6 +3,7 @@ last-window-width=985
 last-window-height=636
 homepage=http://pxe.ustc.edu.cn/liims
 enable-spell-checking=false
+toolbar-items=Back,NextForward,Homepage,ReloadStop,Location,Search,Trash,
 location-entry-search=http://opac.lib.ustc.edu.cn/opac/search_adv_result.php?rd_book=opac&q0=%s&sType0=any
 maximum-history-age=0
 load-on-startup=MIDORI_STARTUP_HOMEPAGE
