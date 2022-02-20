@@ -143,3 +143,4 @@ inspkg linux-image-amd64
 # cleanup
 umount "$ROOT/proc"
 umount "$ROOT/sys"
+chdo apt-get clean
