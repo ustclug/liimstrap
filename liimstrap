@@ -42,8 +42,8 @@ fi
 
 # debootstrap
 debootstrap bullseye "$ROOT" http://mirrors.ustc.edu.cn/debian/
-mount proc /liims/proc -t proc
-mount sysfs /liims/sys -t sysfs
+mount proc "$ROOT/proc" -t proc
+mount sysfs "$ROOT/sys" -t sysfs
 
 # apt
 install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
@@ -139,3 +139,7 @@ chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 # kernel
 # TODO: initramfs.conf
 inspkg linux-image-amd64
+
+# cleanup
+umount "$ROOT/proc"
+umount "$ROOT/sys"
