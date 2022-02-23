@@ -66,7 +66,7 @@ inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
 # Install misc packages
 inspkg bash-completion locales net-tools
 # Install extra packages that not in original list
-inspkg x11-utils libcurl4 curl ca-certificates dbus-x11
+inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 xfonts-base xfonts-intl-chinese
 # Install customized midori
 curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
 inspkg /tmp/midori.deb
@@ -80,6 +80,7 @@ else
     echo "sogoupinyin.deb is corrupted."
     exit 1
 fi
+inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 # Cleanup
 rm $ROOT/tmp/*.deb

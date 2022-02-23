@@ -11,5 +11,4 @@ fbpanel &
 xcompmgr -n &
 systemctl --user start midori
 systemctl --user start fcitx
-systemctl --user start sogou-qimpanel
 exec openbox-session
