@@ -1,4 +1,4 @@
-FROM smartentry/archlinux:latest-0.4.0
+FROM smartentry/debian:bullseye
 
 MAINTAINER Yifan Gao <docker@yfgao.com>
 

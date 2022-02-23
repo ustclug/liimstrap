@@ -1,12 +1,11 @@
 #!/bin/bash
 
-echo 'Server = http://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
-pacman -Syy
+apt-get update
 
-pacman -Syu --noconfirm --force
+apt-get upgrade
 
-pacman -S --noconfirm arch-install-scripts base-devel squashfs-tools libx11 libxss
+apt-get install --yes debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev
 
-pacman -Scc --noconfirm
-rm -rf /var/cache/pacman/pkg/*
+apt-get clean

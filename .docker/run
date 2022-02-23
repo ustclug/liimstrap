@@ -1,21 +1,15 @@
 #!/bin/bash
 
-echo 'Server = http://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
-cat << EOF >> /etc/pacman.conf
-[archlinuxcn]
-SigLevel = Optional TrustedOnly
-Server = http://mirrors.ustc.edu.cn/archlinuxcn/x86_64
-EOF
+apt-get update
 
-pacman -Syy && pacman -S --noconfirm archlinuxcn-keyring
-
-pacman -Syu --noconfirm
+apt-get upgrade
 
 cd /opt/liims
 echo $ROOT_PASSWORD > .rootpasswd
-mkdir -p /srv/root
+# mkdir -p /srv/root
 mkdir -p /srv/dest
-./liimstrap /srv/root
-./deploy /srv/root /srv/dest
+./liimstrap /srv/dest
+# ./deploy /srv/root /srv/dest
 
