@@ -6,6 +6,6 @@ apt-get update
 
 apt-get upgrade
 
-apt-get install --yes debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev
+apt-get install --yes debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev curl
 
 apt-get clean

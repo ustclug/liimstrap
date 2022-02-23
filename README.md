@@ -9,7 +9,7 @@
 使用相同版本的 Debian，安装以下软件包：
 
 ```shell
-$ sudo apt install debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev
+$ sudo apt install debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev curl
 ```
 
 ## 生成
@@ -42,6 +42,6 @@ PXELINUX 配置参见 `pxelinux.cfg.example` 文件。 -->
 ## 从 Docker 构建
 
 ```sh
-# docker build -it ustclug/liimstrap:liims-2 .
-# docker run -it --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2
+# docker build -t ustclug/liimstrap:liims-2 .
+# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2
 ```

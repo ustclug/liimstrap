@@ -67,11 +67,11 @@ inspkg bash-completion locales net-tools
 # Install extra packages that not in original list
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11
 # Install customized midori
-chdo curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
+curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
-chdo curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o /tmp/sogoupinyin.deb
+curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o $ROOT/tmp/sogoupinyin.deb
 sogou_sha256="0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 if [[ $sogou_sha256 = $(sha256sum /tmp/sogoupinyin.deb | cut -d ' ' -f 1) ]]; then
     inspkg /tmp/sogoupinyin.deb
