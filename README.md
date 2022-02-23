@@ -1,25 +1,15 @@
 # liimstrap
 
-中国科大图书馆图书查询机自动生成脚本，基于 Arch Linux 开发。
+中国科大图书馆图书查询机自动生成脚本，当前版本基于 Debian Bullseye 开发。
 
 话说，LIIMS 是嘛意思？我猜是 Library Independent Inquery Machine System 吧。
 
 ## 依赖
 
-首先，必须要用 Arch Linux。然后需要安装以下软件包：
+使用相同版本的 Debian，安装以下软件包：
 
-```sh
-pacman -S arch-install-scripts base-devel squashfs-tools libx11 libxss
-```
-
-添加ArchLinuxCN源：
-
-```sh
-cat << EOF >> /etc/pacman.conf
-[archlinuxcn]
-SigLevel = Optional TrustedOnly
-Server = http://mirrors.ustc.edu.cn/archlinuxcn/x86_64
-EOF
+```shell
+$ sudo apt install debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev
 ```
 
 ## 生成
@@ -36,7 +26,9 @@ sudo ./liimstrap [ROOT]
 
 ## 压成 SqaushFS 镜像
 
-```sh
+TBD
+
+<!-- ```sh
 sudo ./deploy [ROOT] [DEST]
 ```
 
@@ -45,10 +37,11 @@ sudo ./deploy [ROOT] [DEST]
 * `initrd.img` 是 initrd
 * `root.sfs` 是根目录的镜像
 
-PXELINUX 配置参见 `pxelinux.cfg.example` 文件。
+PXELINUX 配置参见 `pxelinux.cfg.example` 文件。 -->
 
-## 从docker构建
+## 从 Docker 构建
 
 ```sh
-docker run -it --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap
+# docker build -it ustclug/liimstrap:liims-2 .
+# docker run -it --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2
 ```
