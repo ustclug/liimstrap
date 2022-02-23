@@ -15,6 +15,17 @@ function inspkg () {
     chroot "$ROOT" /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes $*"
 }
 
+function check_sha256 () {
+    local file="$1"
+    local sha256="$2"
+    if [[ $sha256 = $(sha256sum "$file" | cut -d ' ' -f 1) ]]; then
+        return
+    else
+        echo "$file is corrupted."
+        exit 1
+    fi
+}
+
 ROOT="$1"
 LIIMSUSER="liims"
 
@@ -69,17 +80,12 @@ inspkg bash-completion locales net-tools
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 xfonts-base xfonts-intl-chinese
 # Install customized midori
 curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
+check_sha256 $ROOT/tmp/midori.deb "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
 curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o $ROOT/tmp/sogoupinyin.deb
-sogou_sha256="0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
-if [[ $sogou_sha256 = $(sha256sum $ROOT/tmp/sogoupinyin.deb | cut -d ' ' -f 1) ]]; then
-    inspkg /tmp/sogoupinyin.deb
-else
-    echo "sogoupinyin.deb is corrupted."
-    exit 1
-fi
+check_sha256 $ROOT/tmp/sogoupinyin.deb "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 # Cleanup
