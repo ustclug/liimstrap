@@ -49,26 +49,39 @@ mount sysfs "$ROOT/sys" -t sysfs
 install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
 # install packages
 # following packages may need interactive operations and should take care
-# batch 1: X-related packages
+# Install X-related packages
 inspkg xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau\
     xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth
-# batch 2: cli tools
+# Install CLI tools
 inspkg busybox cron dhcpcd5 dnsutils htop inetutils-ftp inetutils-ping \
     inetutils-telnet iptables iptables-persistent iproute2 \
     iputils-arping iputils-clockdiff iputils-tracepath iso-codes \
     initramfs-tools ndisc6 netdata nyancat openssh-client openssh-server \
     procps rsync scrot sed tar unionfs-fuse usbutils vim
-# batch 3: desktop components
+# Install desktop components
 inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
     gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
     fonts-wqy-zenhei fbpanel xfonts-terminus fcitx-pinyin fcitx-table-wubi fcitx-ui-classic
-# batch 4: misc
+# Install misc packages
 inspkg bash-completion locales net-tools
-# batch 5: extra packages that not in original list
+# Install extra packages that not in original list
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11
-# batch 6: custom app
+# Install customized midori
 chdo curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
 inspkg /tmp/midori.deb
+# Install sogoupinyin
+# ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
+chdo curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o /tmp/sogoupinyin.deb
+sogou_sha256="0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
+if [[ $sogou_sha256 = $(sha256sum /tmp/sogoupinyin.deb | cut -d ' ' -f 1) ]]; then
+    inspkg /tmp/sogoupinyin.deb
+else
+    echo "sogoupinyin.deb is corrupted."
+    exit 1
+fi
+inspkg /tmp/sogoupinyin.deb
+# Cleanup
+rm /tmp/*.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
@@ -126,6 +139,9 @@ chdo systemctl set-default graphical.target
 # netdata
 enserv netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+
+# prevent sogou from modifying fcitx config
+chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
 
 # prevent systemd from changing network interface name
 chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
