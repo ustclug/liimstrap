@@ -138,6 +138,10 @@ chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
 # kernel
 # TODO: initramfs.conf
+install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
+install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
+install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
+
 inspkg linux-image-amd64
 
 # cleanup
