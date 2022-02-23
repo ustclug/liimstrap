@@ -12,7 +12,7 @@ function enserv () {
 }
 
 function inspkg () {
-    chroot "$ROOT" /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes $@"
+    chroot "$ROOT" /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes $*"
 }
 
 ROOT="$1"
@@ -47,6 +47,7 @@ mount sysfs "$ROOT/sys" -t sysfs
 
 # apt
 install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+chdo apt update
 # install packages
 # following packages may need interactive operations and should take care
 # Install X-related packages
@@ -73,6 +74,7 @@ inspkg /tmp/midori.deb
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
 curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o $ROOT/tmp/sogoupinyin.deb
 sogou_sha256="0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
+if [[ $sogou_sha256 = $(sha256sum $ROOT/tmp/sogoupinyin.deb | cut -d ' ' -f 1) ]]; then
     inspkg /tmp/sogoupinyin.deb
 else
     echo "sogoupinyin.deb is corrupted."
@@ -80,6 +82,7 @@ else
 fi
 inspkg /tmp/sogoupinyin.deb
 # Cleanup
+rm $ROOT/tmp/*.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
@@ -103,7 +106,7 @@ install -Dm 600 "$BASE/etc/authorized_keys" "$ROOT/root/.ssh/authorized_keys"
 enserv ssh
 
 # resolv.conf
-echo "nameserver 2001:da8:d800::17" > "$ROOT/etc/resolv.conf"
+printf "nameserver 2001:da8:d800::17\nnameserver 202.38.64.1" > "$ROOT/etc/resolv.conf"
 cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
 
 # dhcpcd
@@ -138,9 +141,6 @@ chdo systemctl set-default graphical.target
 enserv netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
 
-# prevent sogou from modifying fcitx config
-chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
-
 # prevent systemd from changing network interface name
 chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
@@ -149,6 +149,9 @@ chdo userdel -fr "$LIIMSUSER" || true
 chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
+
+# prevent sogou from modifying fcitx config
+chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
 
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"

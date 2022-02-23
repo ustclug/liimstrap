@@ -6,6 +6,7 @@ apt-get update
 apt-get upgrade
 
 apt-get install -o Acquire::http::Pipeline-Depth="0" --no-install-recommends --yes \
-    debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev curl
+    debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev \
+    curl ca-certificates
 
 apt-get clean
