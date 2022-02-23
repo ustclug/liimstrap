@@ -51,7 +51,7 @@ install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
 # following packages may need interactive operations and should take care
 # batch 1: X-related packages
 inspkg xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau\
-    xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr
+    xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth
 # batch 2: cli tools
 inspkg busybox cron dhcpcd5 dnsutils htop inetutils-ftp inetutils-ping \
     inetutils-telnet iptables iptables-persistent iproute2 \
@@ -137,12 +137,11 @@ cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
 # kernel
-# TODO: initramfs.conf
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 
-inspkg linux-image-amd64
+inspkg linux-image-amd64 firmware-linux
 
 # cleanup
 umount "$ROOT/proc"

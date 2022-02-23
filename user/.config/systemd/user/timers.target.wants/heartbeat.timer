@@ -1,9 +1,1 @@
-[Unit]
-Description=Do heartbeat every minutes.
-
-[Timer]
-OnBootSec=1min
-OnUnitActiveSec=1min
-
-[Install]
-WantedBy=timers.target
+../heartbeat.timer
