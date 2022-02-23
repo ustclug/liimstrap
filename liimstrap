@@ -12,7 +12,7 @@ function enserv () {
 }
 
 function inspkg () {
-    chroot "$ROOT" apt-get install --no-install-recommends --yes "$@"
+    chroot "$ROOT" /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes $@"
 }
 
 ROOT="$1"
@@ -73,7 +73,6 @@ inspkg /tmp/midori.deb
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
 curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o $ROOT/tmp/sogoupinyin.deb
 sogou_sha256="0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
-if [[ $sogou_sha256 = $(sha256sum /tmp/sogoupinyin.deb | cut -d ' ' -f 1) ]]; then
     inspkg /tmp/sogoupinyin.deb
 else
     echo "sogoupinyin.deb is corrupted."
@@ -81,7 +80,6 @@ else
 fi
 inspkg /tmp/sogoupinyin.deb
 # Cleanup
-rm /tmp/*.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
