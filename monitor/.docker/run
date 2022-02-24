@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-cd /opt/monitor
-exec python3 server.py

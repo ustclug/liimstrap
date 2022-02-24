@@ -1,0 +1,36 @@
+[Unit]
+Description=LIIMS Monitor web service
+Requires=network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=3sec
+ExecStart=/usr/local/bin/liims-monitor -c /etc/liims-monitor/clients.json
+KillSignal=SIGTERM
+
+# Stop trying to restart the service if it restarts too many times in a row
+StartLimitInterval=1min
+StartLimitBurst=6
+
+StandardOutput=journal
+StandardError=journal
+StandardInput=null
+
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=full
+ProtectHome=true
+InaccessiblePaths=/run /var
+
+PrivateUsers=true
+
+NoNewPrivileges=true
+ConfigurationDirectory=liims-monitor
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

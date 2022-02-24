@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>LIIMS Monitor</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lug.ustc.edu.cn/static/favicon/favicon-32x32.png">
+    <link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">
+    <style>
+      .table th, .table td { padding: 0.2rem !important; border-top: 1px solid black !important; }
+      .status-ok { background-color: #01ff70; }
+      .status-down { background-color: #ff4136; }
+    </style>
+  </head>
+  <body>
+    <div class="container p-3">
+      <table class="table" border="1">
+        <tr>
+          <th>Location</th>
+          <th>Version</th>
+          <th>MAC address</th>
+          <th>IP address</th>
+          <th>Last ping</th>
+          <th>Uptime</th>
+          <th>Status</th>
+        </tr>
+        {{range $index, $client := .}}
+        <tr>
+          <td>{{$client.Name}}</td>
+          <td>{{$client.Version}}</td>
+          <td>{{$client.Mac}}</td>
+          <td>{{$client.IP}}</td>
+          <td>{{$client.TimeStr}}</td>
+          <td>{{$client.UptimeStr}}</td>
+          {{if eq $client.Status "ok"}}
+            <td class="status-ok">OK</td>
+          {{else}}
+            <td class="status-down">Down</td>
+          {{end}}
+        </tr>
+        {{end}}
+      </table>
+    </div>
+  </body>
+</html>
