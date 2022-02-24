@@ -20,9 +20,6 @@ rm -rf "$ROOT"/usr/share/locale/!(zh_CN|en|en_US)
 
 mksquashfs "$ROOT"/ "$DEST"/root.sfs -comp lzo -Xcompression-level 9 -b 32k \
     -e 'boot/' \
-    -e 'dev/' \
-    -e 'proc/' \
-    -e 'sys/' \
     -e 'usr/share/gtk-docs/' \
     -e 'usr/share/doc/' \
     -e 'usr/share/man/'
