@@ -23,10 +23,14 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(
             b'<html>'
             b'<head>'
-            b'<title>Monitor</title>'
-            b'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha256-L/W5Wfqfa0sdBNIKN9cG6QA5F2qx4qICmU2VgLruv9Y=" crossorigin="anonymous">'
+            b'<title>LIIMS Monitor</title>'
+            b'<link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">'
             b'<meta charset="UTF-8">'
-            b'<style>.table th, .table td { padding: 0.2rem !important; border-top: 1px solid black !important; }</style>'
+            b'<style>'
+            b'.table th, .table td { padding: 0.2rem !important; border-top: 1px solid black !important; }'
+            b'.status-ok { background-color: #01ff70; }'
+            b'.status-down { background-color: #ff4136; }'
+            b'</style>'
             b'</head>'
             b'<body><div class="container p-3">')
 
@@ -47,12 +51,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
             delta = now - last_reply
 
             if delta > TIMEOUT:
-                status_color = "#FF4136"
                 status = "Down"
             else:
-                status_color = "#01FF70"
                 status = "OK"
-
 
             self.wfile.write(b"<tr>")
             self.wfile.write(
@@ -62,7 +63,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 "<td>{ip}</td>"\
                 "<td>{time}</td>"\
                 "<td>{uptime}</td>"\
-                "<td style='background-color:{status_color};'>{status}</td>"\
+                "<td class='status-{lstatus}'>{status}</td>"\
                 .format(
                     name = data.get("name"),
                     version = data.get("version"),
@@ -72,7 +73,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                                          time.localtime(last_reply)),
                     uptime = datetime.timedelta(
                                  seconds=float(data.get("uptime", 0.0))),
-                    status_color = status_color,
+                    lstatus = status.lower(),
                     status = status)\
                 .encode()
             )
