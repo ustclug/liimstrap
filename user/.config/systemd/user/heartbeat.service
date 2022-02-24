@@ -1,8 +1,8 @@
 [Unit]
-Description=LIIMS heartbeat.
+Description=LIIMS heartbeat
 Requires=fcitx.service midori.service
 After=fcitx.service midori.service
 
 [Service]
 Type=oneshot
-ExecStart=/liims/bin/heartbeat 
+ExecStart=/liims/bin/heartbeat.sh

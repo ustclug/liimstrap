@@ -3,25 +3,25 @@
 set -e
 BASE="$(dirname "$0")"
 
-function chdo () {
+chdo() {
     chroot "$ROOT" "$@"
 } 
 
-function enserv () {
+enserv() {
     chroot "$ROOT" systemctl enable "$@"
 }
 
-function inspkg () {
-    chroot "$ROOT" /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes $*"
+inspkg() {
+    DEBIAN_FRONTEND=noninteractive chroot "$ROOT" apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes "$@"
 }
 
-function check_sha256 () {
+check_sha256() {
     local file="$1"
     local sha256="$2"
-    if [[ $sha256 = $(sha256sum "$file" | cut -d ' ' -f 1) ]]; then
+    if [[ "$sha256" = $(sha256sum "$file" | cut -d ' ' -f 1) ]]; then
         return
     else
-        echo "$file is corrupted."
+        echo "$file is corrupt."
         exit 1
     fi
 }
@@ -32,14 +32,14 @@ LIIMSUSER="liims"
 if [ ! -d "$ROOT" ]; then
     echo "$ROOT is not a directory."
     exit 1
-elif [ $(whoami) != 'root' ]; then
+elif [ $(id -u) -ne 0 ]; then
     echo "You are not root!"
     exit 1
 fi
 
 # root password
 if [ -f "$BASE/.rootpasswd" ]; then
-    ROOTPASSWD=$(cat "$BASE/.rootpasswd")
+    ROOTPASSWD=$(<"$BASE/.rootpasswd")
 else
     while true; do
         echo -e "root password: "
@@ -49,6 +49,7 @@ else
 
         [ "$ROOTPASSWD" == "$ROOTPASSWD2" ] && break
     done
+    unset ROOTPASSWD2
 fi
 
 # debootstrap
@@ -56,9 +57,10 @@ debootstrap bullseye "$ROOT" http://mirrors.ustc.edu.cn/debian/
 mount proc "$ROOT/proc" -t proc
 mount sysfs "$ROOT/sys" -t sysfs
 
-# apt
+# apt update
 install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
 chdo apt update
+
 # install packages
 # following packages may need interactive operations and should take care
 # Install X-related packages
@@ -77,50 +79,51 @@ inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
 # Install misc packages
 inspkg bash-completion locales net-tools
 # Install extra packages that not in original list
-inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 xfonts-base xfonts-intl-chinese
+inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese
 # Install customized midori
 curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
 check_sha256 $ROOT/tmp/midori.deb "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
-curl -s https://pinyin.sogou.com/linux/ | grep -o "https://.*/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o $ROOT/tmp/sogoupinyin.deb
+curl -s https://pinyin.sogou.com/linux/ | grep -Po "https://.*?/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o "$ROOT/tmp/sogoupinyin.deb"
 check_sha256 $ROOT/tmp/sogoupinyin.deb "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 # Cleanup
-rm $ROOT/tmp/*.deb
+rm "$ROOT"/tmp/*.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
 echo 'export PATH=$PATH:/liims/bin' > "$ROOT/etc/profile.d/liims.sh"
 echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
 
-for script in "$BASE/bin/*.sh"; do
-    install -Dm 755 $script "$ROOT/liims/bin"
+for script in "$BASE"/bin/*.sh; do
+    install -Dm 755 "$script" "$ROOT/liims/bin"
 done
 
 unset CFLAGS
-cc "$BASE/bin/heartbeat.c" -o "$ROOT/liims/bin/heartbeat" -lcurl
-cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -lX11 -lXext -lXss
+cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -O2 -s -lX11 -lXext -lXss
 
 # SSH login for root
 cp $BASE/etc/ssh/* "$ROOT/etc/ssh"
-echo -e "$ROOTPASSWD\n$ROOTPASSWD" | chdo passwd
+printf "root:$ROOTPASSWD\n" | chdo chpasswd
 mkdir -p "$ROOT/root/.ssh"
 chmod 700 "$ROOT/root/.ssh"
 install -Dm 600 "$BASE/etc/authorized_keys" "$ROOT/root/.ssh/authorized_keys"
 enserv ssh
 
 # resolv.conf
-printf "nameserver 2001:da8:d800::17\nnameserver 202.38.64.1" > "$ROOT/etc/resolv.conf"
+printf "nameserver 2001:da8:d800::1\nnameserver 202.38.64.1\n" > "$ROOT/etc/resolv.conf"
 cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
 
 # dhcpcd
 enserv dhcpcd
 
 # time and NTP
-chdo ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+TZ=Asia/Shanghai
+echo "$TZ" > "$ROOT/etc/timezone"
+chdo ln -sfn "/usr/share/zoneinfo/$TZ" /etc/localtime
 echo -e "[Time]\nNTP=time.ustc.edu.cn" > "$ROOT/etc/systemd/timesyncd.conf"
 enserv systemd-timesyncd.service
 
@@ -145,8 +148,8 @@ cp "$BASE/etc/slim.conf" "$ROOT/etc/"
 chdo systemctl set-default graphical.target
 
 # netdata
-enserv netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+enserv netdata
 
 # prevent systemd from changing network interface name
 chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
@@ -164,7 +167,6 @@ chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
-
 inspkg linux-image-amd64 firmware-linux
 
 # cleanup

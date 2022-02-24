@@ -2,24 +2,27 @@
 
 shopt -s extglob
 
-ROOT=$1
-DATE=$(date +%y%m%d)
-DEST=$2/liims$DATE
+ROOT="$1"
+DATE="$(date +%y%m%d)"
+DEST="$2/liims$DATE"
 
 if [[ ! -d "$ROOT" || ! -d "$2" ]]; then
-    echo "./deploy ROOT DEST" 1>&2
+    echo "./deploy ROOT DEST" >&2
     exit 1
 fi
 
-KERNEL=$(ls $ROOT/boot | grep -m1 -Po "^vmlinuz-\K\S+")
+KERNEL=$(ls "$ROOT"/boot | grep -m1 -Po "^vmlinuz-\K\S+")
 
-mkdir $DEST
-cp $1/boot/vmlinuz-${KERNEL} $DEST/vmlinuz
-cp $1/boot/initramfs-${KERNEL}.img $DEST/initrd.img
-#rm -rf $1/usr/share/locale/!(zh_CN|en|en_US)
+mkdir "$DEST"
+cp "$ROOT/boot/vmlinuz-$KERNEL" "$DEST/vmlinuz"
+cp "$ROOT/boot/initrd.img-$KERNEL" "$DEST/initrd.img"
+rm -rf "$ROOT"/usr/share/locale/!(zh_CN|en|en_US)
 
-mksquashfs $1/ $DEST/root.sfs -comp lzo -Xcompression-level 9 -b 32k \
+mksquashfs "$ROOT"/ "$DEST"/root.sfs -comp lzo -Xcompression-level 9 -b 32k \
     -e 'boot/' \
+    -e 'dev/' \
+    -e 'proc/' \
+    -e 'sys/' \
     -e 'usr/share/gtk-docs/' \
     -e 'usr/share/doc/' \
     -e 'usr/share/man/'

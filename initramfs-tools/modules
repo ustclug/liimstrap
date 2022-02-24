@@ -10,4 +10,6 @@
 # raid1
 # sd_mod
 overlay
+loop
 sky2
+squashfs
