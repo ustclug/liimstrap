@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -78,8 +79,9 @@ var (
 	listenPort   int
 	dumpTemplate bool
 
-	macList    []string
-	clientData = make(map[string]*ClientInfo)
+	macList        []string
+	clientData     = make(map[string]*ClientInfo)
+	clientDataLock sync.RWMutex
 
 	//go:embed index.html
 	indexTemplateStr string
@@ -96,20 +98,22 @@ func loadConfig() error {
 		return err
 	}
 
+	clientDataLock.Lock()
+	defer clientDataLock.Unlock()
 	macList = make([]string, len(config.Machines))
-	oldData := clientData
-	clientData = make(map[string]*ClientInfo)
+	newData := make(map[string]*ClientInfo)
 	for i, m := range config.Machines {
 		macList[i] = m.Mac
-		if d, ok := oldData[m.Mac]; ok {
-			clientData[m.Mac] = d
+		if d, ok := clientData[m.Mac]; ok {
+			newData[m.Mac] = d
 		} else {
-			clientData[m.Mac] = &ClientInfo{Name: m.Name}
+			newData[m.Mac] = &ClientInfo{Name: m.Name}
 		}
 	}
-	if _, ok := clientData[""]; !ok {
-		clientData[""] = &ClientInfo{Name: "Unknown"}
+	if _, ok := newData[""]; !ok {
+		newData[""] = &ClientInfo{Name: "Unknown"}
 	}
+	clientData = newData
 	log.Printf("Loaded configuration, total %d clients", len(clientData))
 	return nil
 }
@@ -121,6 +125,8 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		// Construct data
+		clientDataLock.RLock()
+		defer clientDataLock.RUnlock()
 		payload := make([]ClientInfo, len(clientData))
 		for i, mac := range macList {
 			payload[i] = *clientData[mac]
@@ -155,6 +161,10 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// using RLock because it's coarse,
+		// and we know an item will not be modified concurrently
+		clientDataLock.RLock()
+		defer clientDataLock.RUnlock()
 		d, ok := clientData[mac]
 		if !ok {
 			d, ok = clientData[""]
