@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>LIIMS Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="32x32" href="https://lug.ustc.edu.cn/static/favicon/favicon-32x32.png">
     <link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">
     <style>
@@ -11,9 +12,9 @@
       .status-down { background-color: #ff4136; }
     </style>
   </head>
-  <body>
-    <div class="container p-3">
-      <table class="table" border="1">
+  <body class="d-flex flex-column min-vh-100">
+    <div class="container-fluid container-xl table-responsive py-3">
+      <table class="table text-nowrap mb-0" border="1">
         <tr>
           <th>Location</th>
           <th>Version</th>

@@ -1,9 +1,11 @@
 [Unit]
-Description=Do heartbeat every minutes.
+Description=Do heartbeat periodic
 
 [Timer]
-OnBootSec=30
-OnUnitActiveSec=30
+OnBootSec=25
+OnUnitActiveSec=25
+AccuracySec=1
+RandomizedDelaySec=5
 
 [Install]
 WantedBy=timers.target
