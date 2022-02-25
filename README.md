@@ -26,9 +26,7 @@ sudo ./liimstrap [ROOT]
 
 ## 压成 SqaushFS 镜像
 
-TBD
-
-<!-- ```sh
+```sh
 sudo ./deploy [ROOT] [DEST]
 ```
 
@@ -37,11 +35,12 @@ sudo ./deploy [ROOT] [DEST]
 * `initrd.img` 是 initrd
 * `root.sfs` 是根目录的镜像
 
-PXELINUX 配置参见 `pxelinux.cfg.example` 文件。 -->
+Grub 配置参见 `grub.example` 文件。
 
 ## 从 Docker 构建
 
 ```sh
 # docker build -t ustclug/liimstrap:liims-2 .
-# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2
+# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2  # 此命令创建 rootfs 文件
+# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test -e SQUASHFS=true ustclug/liimstrap:liims-2  # 此命令创建 rootfs 文件并打包为 squashfs
 ```

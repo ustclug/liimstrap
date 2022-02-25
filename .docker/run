@@ -1,13 +1,22 @@
-#!/bin/bash
+#!/bin/bash -e
 
 sed -Ei 's/(deb|security)\.debian\.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
 apt-get update
 apt-get upgrade
 
-cd /opt/liims
+cd /opt/liims || exit 1
 printf "%s\n" "$ROOT_PASSWORD" > .rootpasswd
-# mkdir -p /srv/root
+
+use_squashfs="${SQUASHFS:-false}"
+
 mkdir -p /srv/dest
-./liimstrap /srv/dest
-# ./deploy /srv/root /srv/dest
+
+if [ "$use_squashfs" = true ]; then
+    echo "Build to squashfs."
+    mkdir -p /srv/root
+    ./liimstrap /srv/root
+    ./deploy /srv/root /srv/dest
+else
+    ./liimstrap /srv/dest
+fi
