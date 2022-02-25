@@ -11,7 +11,9 @@
 -A user-filt -j RETURN -d ic.lib.ustc.edu.cn
 -A user-filt -j RETURN -d passport.ustc.edu.cn
 -A user-filt -j RETURN -d sls.smartstudy.com
+-A user-filt -j RETURN -d api.lib.ustc.edu.cn
 -A user-filt -j RETURN -d 202.38.93.94
+-A user-filt -j RETURN -d 202.38.93.41
 -A user-filt -j RETURN -d 202.38.74.48
 -A user-filt -j RETURN -d 202.38.74.47
 -A user-filt -j REJECT
