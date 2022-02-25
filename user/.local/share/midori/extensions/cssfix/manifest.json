@@ -1,0 +1,13 @@
+{
+    "manifest_version": 2,
+    "name": "Webkit faux bold fix",
+    "version": "1.0",
+    "description": "It seems that this bug still exists in webkitgtk",
+    "content_scripts": [
+      {
+        "css": [
+          "custom.css"
+        ]
+      }
+    ]
+}
