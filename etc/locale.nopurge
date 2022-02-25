@@ -59,8 +59,8 @@ QUICKNDIRTYCALC
 # Following locales won't be deleted from this system
 # after package installations done with apt-get(8):
 
-en
+en_US
 en_US.UTF-8
-zh
+zh_CN
 zh_CN.GBK
 zh_CN.UTF-8
