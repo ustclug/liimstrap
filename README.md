@@ -70,3 +70,7 @@ Grub 配置参见 `grub.example` 文件。
    ```
    qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
    ```
+
+## 技术细节
+
+见 `docs` 目录。
