@@ -5,14 +5,16 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
-	"text/template"
+	"syscall"
 	"time"
 )
 
@@ -95,13 +97,20 @@ func loadConfig() error {
 	}
 
 	macList = make([]string, len(config.Machines))
+	oldData := clientData
+	clientData = make(map[string]*ClientInfo)
 	for i, m := range config.Machines {
 		macList[i] = m.Mac
-		clientData[m.Mac] = &ClientInfo{Name: m.Name}
+		if d, ok := oldData[m.Mac]; ok {
+			clientData[m.Mac] = d
+		} else {
+			clientData[m.Mac] = &ClientInfo{Name: m.Name}
+		}
 	}
 	if _, ok := clientData[""]; !ok {
 		clientData[""] = &ClientInfo{Name: "Unknown"}
 	}
+	log.Printf("Loaded configuration, total %d clients", len(clientData))
 	return nil
 }
 
@@ -171,7 +180,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 
 func init() {
 	flag.StringVar(&configFile, "c", "clients.json", "JSON config of clients")
-	flag.IntVar(&listenPort, "p", 3000, "Port to listen on")
+	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
 	flag.BoolVar(&dumpTemplate, "t", false, "dump template")
 
 	indexTemplate = template.Must(template.New("index").Parse(indexTemplateStr))
@@ -193,6 +202,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot load config: %v", err)
 	}
+
+	sighup := make(chan os.Signal)
+	signal.Notify(sighup, syscall.SIGHUP)
+	go func() {
+		for range sighup {
+			err := loadConfig()
+			if err != nil {
+				log.Printf("Cannot reload config: %v", err)
+			}
+		}
+	}()
 
 	http.HandleFunc("/", handleFunc)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), nil))
