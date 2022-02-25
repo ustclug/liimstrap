@@ -1,0 +1,7 @@
+[Unit]
+Description=LIIMS chameleon: change midori settings by boot cmdline
+Before=midori.service
+
+[Service]
+Type=oneshot
+ExecStart=/liims/bin/chameleon.py

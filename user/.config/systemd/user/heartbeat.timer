@@ -1,5 +1,5 @@
 [Unit]
-Description=Do heartbeat periodic
+Description=Do heartbeat periodically
 
 [Timer]
 OnBootSec=25
