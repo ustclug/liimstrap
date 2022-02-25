@@ -21,10 +21,9 @@ systemctl stop slim
 sleep 2
 
 echo "Reset /home..."
-su $LIIMSUSER -c "rsync -a --delete /RO/home/$LIIMSUSER/ /home/$LIIMSUSER/"
+su $LIIMSUSER -c "rsync -a --delete /ro/home/$LIIMSUSER/ /home/$LIIMSUSER/"
 sleep 2
 
 systemctl daemon-reload
 systemctl start slim
 echo "Done!"
-
