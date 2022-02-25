@@ -9,6 +9,7 @@ xset s noblank
 
 fbpanel &
 xcompmgr -n &
-systemctl --user start midori
-systemctl --user start fcitx
+systemctl --user start chameleon.service
+systemctl --user start midori.service
+systemctl --user start fcitx.service
 exec openbox-session
