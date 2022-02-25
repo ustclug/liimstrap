@@ -77,7 +77,7 @@ inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
     gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
     fonts-wqy-zenhei fbpanel xfonts-terminus fcitx-pinyin fcitx-table-wubi fcitx-ui-classic
 # Install misc packages
-inspkg bash-completion locales net-tools
+inspkg bash-completion locales net-tools zstd
 # Install extra packages that not in original list
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese
 # Install customized midori
@@ -90,7 +90,8 @@ curl -s https://pinyin.sogou.com/linux/ | grep -Po "https://.*?/sogoupinyin_3.4.
 check_sha256 $ROOT/tmp/sogoupinyin.deb "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
-# Cleanup
+
+# Cleanup deb files
 rm "$ROOT"/tmp/*.deb
 
 # Assistant scripts and programs
@@ -163,11 +164,23 @@ chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 # prevent sogou from modifying fcitx config
 chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
 
+# hostname
+echo "liims" > "$ROOT/etc/hostname"
+
+# Remove unused locales
+inspkg localepurge
+install -Dm644 "$BASE/etc/locale.nopurge" "$ROOT/etc/locale.nopurge"
+chdo localepurge
+chdo apt purge -y localepurge
+
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 inspkg linux-image-amd64 firmware-linux
+
+# Remove unused docs
+rm -rf "$ROOT/usr/share/doc/"*
 
 # cleanup
 umount "$ROOT/proc"
