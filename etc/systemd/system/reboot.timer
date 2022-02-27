@@ -1,0 +1,10 @@
+[Unit]
+Description=Reboot LIIMS (Timer)
+
+[Timer]
+OnCalendar=Sat *-*-* 02:00:00
+RandomizedDelaySec=2h
+Unit=reboot.target
+
+[Install]
+WantedBy=timers.target

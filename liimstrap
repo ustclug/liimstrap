@@ -67,11 +67,11 @@ chdo apt update
 inspkg xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau\
     xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth
 # Install CLI tools
-inspkg busybox cron dhcpcd5 dnsutils htop inetutils-ftp inetutils-ping \
-    inetutils-telnet iptables iptables-persistent iproute2 \
-    iputils-arping iputils-clockdiff iputils-tracepath iso-codes \
-    initramfs-tools ndisc6 netdata nyancat openssh-client openssh-server \
-    procps rsync scrot sed tar unionfs-fuse usbutils vim
+inspkg busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+    inetutils-telnet iptables-persistent iproute2 \
+    iputils-arping iputils-clockdiff iso-codes \
+    initramfs-tools mtr-tiny ndisc6 netdata nyancat \
+    procps rsync scrot sed ssh tar usbutils vim
 # Install desktop components
 inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
     gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
@@ -82,13 +82,13 @@ inspkg bash-completion locales net-tools zstd
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
     x11-xserver-utils
 # Install customized midori
-curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
-check_sha256 $ROOT/tmp/midori.deb "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
+curl -o "$ROOT/tmp/midori.deb" https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb
+check_sha256 "$ROOT/tmp/midori.deb" "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
 curl -s https://pinyin.sogou.com/linux/ | grep -Po "https://.*?/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o "$ROOT/tmp/sogoupinyin.deb"
-check_sha256 $ROOT/tmp/sogoupinyin.deb "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
+check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 
@@ -137,10 +137,9 @@ cp "$BASE/etc/iptables/iptables.rules" "$ROOT/etc/iptables/rules.v4"
 cp "$BASE/etc/iptables/ip6tables.rules" "$ROOT/etc/iptables/rules.v6"
 enserv iptables.service
 
-# crontab
-cp "$BASE/etc/root.crontab" "$ROOT/tmp/"
-chdo crontab "/tmp/root.crontab"
-enserv cron
+# cron jobs
+install -Dm644 "$BASE/etc/systemd/system"/*.* "$ROOT/etc/systemd/system/"
+enserv liims-reset.timer reboot.timer
 
 # slim
 cp "$BASE/etc/slim.conf" "$ROOT/etc/"
@@ -156,7 +155,7 @@ chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
 # user specific
 chdo userdel -fr "$LIIMSUSER" || true
-chdo useradd -m -g users -s /bin/bash "$LIIMSUSER"
+chdo useradd -m -o -u 1000 -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
 
@@ -170,7 +169,6 @@ echo "liims" > "$ROOT/etc/hostname"
 inspkg localepurge
 install -Dm644 "$BASE/etc/locale.nopurge" "$ROOT/etc/locale.nopurge"
 chdo localepurge
-chdo apt purge -y --autoremove localepurge
 
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
@@ -182,6 +180,10 @@ inspkg linux-image-amd64 firmware-linux
 rm -rf "$ROOT/usr/share/doc/"*
 
 # cleanup
+chdo apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
+chdo apt-get clean
+rm -rf "$ROOT/var"/{backups,log,tmp}/*
+rm -rf "$ROOT"/{run,tmp}/*
+rm -rf "$ROOT"/*.old
 umount "$ROOT/proc"
 umount "$ROOT/sys"
-chdo apt-get clean

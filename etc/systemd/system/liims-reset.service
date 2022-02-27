@@ -1,0 +1,6 @@
+[Unit]
+Description=Reset LIIMS user
+
+[Service]
+Type=oneshot
+ExecStart=/liims/bin/reset.sh

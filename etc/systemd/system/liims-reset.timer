@@ -1,0 +1,10 @@
+[Unit]
+Description=Reset LIIMS user (Timer)
+
+[Timer]
+OnCalendar=*-*-* *:30:00
+RandomizedDelaySec=10min
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
