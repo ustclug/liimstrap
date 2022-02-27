@@ -1,44 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
   <head>
-    <meta charset="UTF-8">
     <title>LIIMS Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="32x32" href="http://pxe.ustc.edu.cn/static/favicon.png">
     <link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">
     <style>
-      .table th, .table td { padding: 0.2rem !important; border-top: 1px solid black !important; }
-      .status-ok { background-color: #01ff70; }
-      .status-down { background-color: #ff4136; }
+      .table th, .table td { padding: 0.2rem !important; color: black !important; border-color: black !important; }
+      .table thead th { border-bottom: none !important; }
+      .status-ok { background-color: #00ff7f; }
+      .status-down { background-color: #ff7f7f; }
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
-    <div class="container-fluid container-xl table-responsive py-3">
-      <table class="table text-nowrap mb-0" border="1">
-        <tr>
-          <th>Location</th>
-          <th>Version</th>
-          <th>MAC address</th>
-          <th>IP address</th>
-          <th>Last ping</th>
-          <th>Uptime</th>
-          <th>Status</th>
-        </tr>
-        {{range $index, $client := .}}
-        <tr>
-          <td>{{$client.Name}}</td>
-          <td>{{$client.Version}}</td>
-          <td>{{$client.Mac}}</td>
-          <td>{{$client.IP}}</td>
-          <td>{{$client.TimeStr}}</td>
-          <td>{{$client.UptimeStr}}</td>
-          {{if eq $client.Status "ok"}}
-            <td class="status-ok">OK</td>
-          {{else}}
-            <td class="status-down">Down</td>
+    <div class="container-fluid container-xl table-responsive flex-grow-1 py-3">
+      <table class="table table-hover text-nowrap mb-0" border="1">
+        <thead class="thead-light text-black">
+          <tr>
+            <th>Location</th>
+            <th>Version</th>
+            <th>MAC address</th>
+            <th>IP address</th>
+            <th>Last ping</th>
+            <th>Uptime</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $index, $client := .}}
+          <tr>
+            <td>{{$client.Name}}</td>
+            <td>{{$client.Version}}</td>
+            <td>{{$client.Mac}}</td>
+            <td>{{$client.IP}}</td>
+            <td>{{$client.TimeStr}}</td>
+            <td>{{$client.UptimeStr}}</td>
+            {{if eq $client.Status "ok"}}
+              <td class="status-ok">OK</td>
+            {{else}}
+              <td class="status-down">Down</td>
+            {{end}}
+          </tr>
           {{end}}
-        </tr>
-        {{end}}
+        </tbody>
       </table>
     </div>
   </body>

@@ -169,7 +169,7 @@ func handleSignal(chSig <-chan os.Signal) {
 func handleFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		// Render HTML list
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 
 		// Construct data
@@ -279,5 +279,8 @@ func main() {
 	}()
 
 	http.HandleFunc("/", handleFunc)
+	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "User-Agent: *\nDisallow: /", http.StatusOK)
+	})
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), nil))
 }
