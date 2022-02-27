@@ -150,7 +150,7 @@ chdo systemctl set-default graphical.target
 
 # netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
-chdo chmod -R netdata:netdata "$ROOT/usr/share/netdata/web/"
+chdo chown -R netdata:netdata "/usr/share/netdata/web/"
 enserv netdata
 
 # prevent systemd from changing network interface name
