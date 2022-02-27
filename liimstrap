@@ -79,7 +79,8 @@ inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
 # Install misc packages
 inspkg bash-completion locales net-tools zstd
 # Install extra packages that not in original list
-inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese
+inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
+    x11-xserver-utils
 # Install customized midori
 curl https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb > $ROOT/tmp/midori.deb
 check_sha256 $ROOT/tmp/midori.deb "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
@@ -111,7 +112,6 @@ cp $BASE/etc/ssh/* "$ROOT/etc/ssh"
 printf "root:$ROOTPASSWD\n" | chdo chpasswd
 mkdir -p "$ROOT/root/.ssh"
 chmod 700 "$ROOT/root/.ssh"
-install -Dm 600 "$BASE/etc/authorized_keys" "$ROOT/root/.ssh/authorized_keys"
 enserv ssh
 
 # resolv.conf
@@ -150,6 +150,7 @@ chdo systemctl set-default graphical.target
 
 # netdata
 cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
+chdo chmod -R netdata:netdata "$ROOT/usr/share/netdata/web/"
 enserv netdata
 
 # prevent systemd from changing network interface name

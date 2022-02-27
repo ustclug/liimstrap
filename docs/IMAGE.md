@@ -28,11 +28,11 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 
 ## SSH
 
-TBD
+可以使用 LUG 证书登录。
 
 ## netdata
 
-TBD
+netdata 放在 8000 端口上，可以查看查询机系统状态。因为 netdata 有用户权限限制，基本可以认为是安全的，未来如有必要，可以加上访问 IP 限制。
 
 ## Midori 配置
 
