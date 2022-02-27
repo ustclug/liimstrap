@@ -93,7 +93,7 @@ inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 
 # Cleanup deb files
-rm "$ROOT"/tmp/*.deb
+rm -f "$ROOT"/tmp/*.deb
 
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
@@ -108,14 +108,12 @@ unset CFLAGS
 cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -O2 -s -lX11 -lXext -lXss
 
 # SSH login for root
-cp $BASE/etc/ssh/* "$ROOT/etc/ssh"
-printf "root:$ROOTPASSWD\n" | chdo chpasswd
-mkdir -p "$ROOT/root/.ssh"
-chmod 700 "$ROOT/root/.ssh"
+cp "$BASE/etc/ssh"/* "$ROOT/etc/ssh"
+printf "root:%s\n" "$ROOTPASSWD" | chdo chpasswd
 enserv ssh
 
 # resolv.conf
-printf "nameserver 2001:da8:d800::1\nnameserver 202.38.64.1\n" > "$ROOT/etc/resolv.conf"
+cp "$BASE/etc/resolv.conf" "$ROOT/etc/resolv.conf"
 cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
 
 # dhcpcd
@@ -172,7 +170,7 @@ echo "liims" > "$ROOT/etc/hostname"
 inspkg localepurge
 install -Dm644 "$BASE/etc/locale.nopurge" "$ROOT/etc/locale.nopurge"
 chdo localepurge
-chdo apt purge -y localepurge
+chdo apt purge -y --autoremove localepurge
 
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"

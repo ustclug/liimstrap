@@ -29,9 +29,9 @@ type Config struct {
 }
 
 type ClientInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Mac     string
+	Name    string        `json:"name"`
+	Version string        `json:"version"`
+	Mac     string        `json:"-"`
 	IP      string        `json:"ip"`
 	Time    time.Time     `json:"time"`
 	Uptime  time.Duration `json:"uptime"`
@@ -159,6 +159,7 @@ func handleSignal(chSig <-chan os.Signal) {
 			err := saveState()
 			if err != nil {
 				log.Printf("Cannot save state: %v", err)
+				os.Exit(1)
 			}
 			os.Exit(0)
 		}
@@ -270,6 +271,12 @@ func main() {
 	chSig := make(chan os.Signal)
 	signal.Notify(chSig, syscall.SIGHUP, syscall.SIGQUIT)
 	go handleSignal(chSig)
+
+	go func() {
+		for range time.NewTicker(30 * time.Second).C {
+			saveState()
+		}
+	}()
 
 	http.HandleFunc("/", handleFunc)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), nil))
