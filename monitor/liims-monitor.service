@@ -7,6 +7,7 @@ Type=simple
 Restart=on-failure
 RestartSec=3sec
 ExecStart=/usr/local/bin/liims-monitor -c /etc/liims-monitor/clients.json
+ExecStop=/bin/kill -SIGQUIT $MAINPID
 ExecReload=/bin/kill -SIGHUP $MAINPID
 KillSignal=SIGTERM
 
@@ -22,7 +23,9 @@ PrivateTmp=true
 PrivateDevices=true
 ProtectSystem=full
 ProtectHome=true
-InaccessiblePaths=/run /var
+InaccessiblePaths=/run
+TemporaryFileSystem=/var:ro
+BindPaths=/var/lib/liims-monitor
 
 PrivateUsers=true
 

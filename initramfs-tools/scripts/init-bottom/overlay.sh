@@ -36,6 +36,7 @@ if test -n "$squashfs"; then
     cp "$sfsfile" /tmpfs/root.sfs
     mount -t squashfs -o ro /tmpfs/root.sfs /ro
     umount -l /tmpfs
+    umount -l "$rootmnt"
   else
     # mount directly from NFS
     mount -t squashfs -o ro "$sfsfile" /ro

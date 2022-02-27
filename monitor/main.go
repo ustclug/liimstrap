@@ -3,9 +3,11 @@ package main
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"math"
@@ -27,12 +29,12 @@ type Config struct {
 }
 
 type ClientInfo struct {
-	Name    string
-	Version string
+	Name    string `json:"name"`
+	Version string `json:"version"`
 	Mac     string
-	IP      string
-	Time    time.Time
-	Uptime  time.Duration
+	IP      string        `json:"ip"`
+	Time    time.Time     `json:"time"`
+	Uptime  time.Duration `json:"uptime"`
 }
 
 const ALIVE_TIMEOUT = 120 * time.Second
@@ -78,6 +80,7 @@ var (
 	configFile   string
 	listenPort   int
 	dumpTemplate bool
+	stateFile    string
 
 	macList        []string
 	clientData     = make(map[string]*ClientInfo)
@@ -116,6 +119,50 @@ func loadConfig() error {
 	clientData = newData
 	log.Printf("Loaded configuration, total %d clients", len(clientData))
 	return nil
+}
+
+func saveState() error {
+	log.Printf("Saving state to %s", stateFile)
+	f, err := os.Create(stateFile)
+	if err != nil {
+		return err
+	}
+	e := json.NewEncoder(f)
+	clientDataLock.RLock()
+	defer clientDataLock.RUnlock()
+	return e.Encode(clientData)
+}
+
+func loadState() error {
+	d, err := ioutil.ReadFile(stateFile)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			log.Print("No state file found, skipping")
+			return nil
+		}
+		return err
+	}
+	clientDataLock.Lock()
+	defer clientDataLock.Unlock()
+	return json.Unmarshal(d, &clientData)
+}
+
+func handleSignal(chSig <-chan os.Signal) {
+	for sig := range chSig {
+		switch sig {
+		case syscall.SIGHUP:
+			err := loadConfig()
+			if err != nil {
+				log.Printf("Cannot reload config: %v", err)
+			}
+		case syscall.SIGQUIT:
+			err := saveState()
+			if err != nil {
+				log.Printf("Cannot save state: %v", err)
+			}
+			os.Exit(0)
+		}
+	}
 }
 
 func handleFunc(w http.ResponseWriter, r *http.Request) {
@@ -191,6 +238,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 func init() {
 	flag.StringVar(&configFile, "c", "clients.json", "JSON config of clients")
 	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
+	flag.StringVar(&stateFile, "s", "/var/lib/liims-monitor/state.json", "save state file")
 	flag.BoolVar(&dumpTemplate, "t", false, "dump template")
 
 	indexTemplate = template.Must(template.New("index").Parse(indexTemplateStr))
@@ -212,17 +260,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot load config: %v", err)
 	}
+	err = loadState()
+	if err != nil {
+		log.Printf("Cannot load saved state: %v", err)
+	} else {
+		log.Printf("Loaded state from %s", stateFile)
+	}
 
-	sighup := make(chan os.Signal)
-	signal.Notify(sighup, syscall.SIGHUP)
-	go func() {
-		for range sighup {
-			err := loadConfig()
-			if err != nil {
-				log.Printf("Cannot reload config: %v", err)
-			}
-		}
-	}()
+	chSig := make(chan os.Signal)
+	signal.Notify(chSig, syscall.SIGHUP, syscall.SIGQUIT)
+	go handleSignal(chSig)
 
 	http.HandleFunc("/", handleFunc)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), nil))
