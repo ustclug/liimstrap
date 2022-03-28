@@ -14,6 +14,7 @@
 -A user-filt -j RETURN -d api.lib.ustc.edu.cn
 -A user-filt -j RETURN -d iat.ustc.edu.cn
 -A user-filt -j RETURN -d iat.lib.ustc.edu.cn
+-A user-filt -j RETURN -d hs.lib.ustc.edu.cn
 -A user-filt -j RETURN -d 202.38.93.94
 -A user-filt -j RETURN -d 202.38.93.41
 -A user-filt -j RETURN -d 202.38.74.48

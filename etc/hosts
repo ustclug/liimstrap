@@ -14,6 +14,7 @@
 202.38.93.62 api.lib.ustc.edu.cn
 202.38.64.246 iat.ustc.edu.cn
 202.38.74.4 iat.lib.ustc.edu.cn
+202.38.64.246 hs.lib.ustc.edu.cn
 
 # impossible to access without WangLuoTong
 # maybe we could set up a proxy for them
