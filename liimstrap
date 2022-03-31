@@ -80,14 +80,14 @@ inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
 inspkg bash-completion locales net-tools zstd
 # Install extra packages that not in original list
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
-    x11-xserver-utils
+    x11-xserver-utils systemd-timesyncd
 # Install customized midori
 curl -o "$ROOT/tmp/midori.deb" https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb
 check_sha256 "$ROOT/tmp/midori.deb" "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
-curl -s https://pinyin.sogou.com/linux/ | grep -Po "https://.*?/sogoupinyin_3.4.0.9700_amd64.deb" | xargs curl -o "$ROOT/tmp/sogoupinyin.deb"
+curl -o "$ROOT/tmp/sogoupinyin.deb" http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb
 check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
@@ -182,7 +182,7 @@ rm -rf "$ROOT/usr/share/doc/"*
 # cleanup
 chdo apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
 chdo apt-get clean
-rm -rf "$ROOT/var"/{backups,log,tmp}/*
+rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/{run,tmp}/*
 rm -rf "$ROOT"/*.old
 umount "$ROOT/proc"
