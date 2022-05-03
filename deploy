@@ -18,7 +18,7 @@ cp "$ROOT/boot/vmlinuz-$KERNEL" "$DEST/vmlinuz"
 cp "$ROOT/boot/initrd.img-$KERNEL" "$DEST/initrd.img"
 rm -rf "$ROOT"/usr/share/locale/!(zh_CN|en|en_US)
 
-mksquashfs "$ROOT"/ "$DEST"/root.sfs -comp lzo -Xcompression-level 9 -b 32k \
+mksquashfs "$ROOT"/ "$DEST"/root.sfs -comp zstd -Xcompression-level 22 -b 32k \
     -e 'boot/' \
     -e 'usr/share/gtk-docs/' \
     -e 'usr/share/doc/' \
