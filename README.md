@@ -74,3 +74,19 @@ Grub 配置参见 `grub.example` 文件。
 ## 技术细节
 
 见 `docs` 目录。
+
+## 附录
+
+### 在非科大校园网环境构建
+
+写入 `/etc/resolv.conf` 的步骤执行后，之后的相关命令连接网络时会请求 `202.38.64.1` 作为 DNS 服务器，在校外环境下可能无法使用。这个问题可以使用 iptables 处理：
+
+```
+# 在 NAT 表中修改包的目的地（假设本地 DNS 为 127.0.0.53）
+iptables -t nat -A OUTPUT -d 202.38.64.1/32 -p udp -m udp --dport 53 -j DNAT --to-destination 127.0.0.53:53
+iptables -t nat -A OUTPUT -d 202.38.64.1/32 -p tcp -m tcp --dport 53 -j DNAT --to-destination 127.0.0.53:53
+# 如果使用 systemd-resolved，其要求访问的 IP 必须为本地回环，但是访问 202.38.64.1 的路由不是本地回环
+# 因此包的源地址也需要修改
+iptables -t nat -A POSTROUTING -d 127.0.0.53/32 -p udp -m udp --dport 53 -j SNAT --to-source 127.0.0.1
+iptables -t nat -A POSTROUTING -d 127.0.0.53/32 -p tcp -m tcp --dport 53 -j SNAT --to-source 127.0.0.1
+```
