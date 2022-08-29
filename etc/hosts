@@ -16,6 +16,10 @@
 202.38.74.4 iat.lib.ustc.edu.cn
 202.38.64.246 hs.lib.ustc.edu.cn
 
+202.38.64.246 jw.ustc.edu.cn
+202.38.64.246 mis.ustc.edu.cn
+202.38.64.246 yjs.ustc.edu.cn
+
 # impossible to access without WangLuoTong
 # maybe we could set up a proxy for them
 2001:da8:d800:931::94  img1.douban.com
