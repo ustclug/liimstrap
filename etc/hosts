@@ -19,6 +19,8 @@
 202.38.64.246 jw.ustc.edu.cn
 202.38.64.246 mis.ustc.edu.cn
 202.38.64.246 yjs.ustc.edu.cn
+202.38.64.246 catalog.ustc.edu.cn
+202.38.64.246 www.teach.ustc.edu.cn
 
 # impossible to access without WangLuoTong
 # maybe we could set up a proxy for them
