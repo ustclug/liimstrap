@@ -23,5 +23,6 @@
 -A user-filt -j RETURN -d 192.168.74.7
 -A user-filt -j RETURN -d 202.38.93.222
 -A user-filt -j RETURN -d 202.38.64.246
+-A user-filt -j RETURN -d 202.38.74.8
 -A user-filt -j REJECT
 COMMIT
