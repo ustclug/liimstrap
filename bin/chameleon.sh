@@ -13,7 +13,7 @@ case "$profile" in
   iat)
     F="$HOME/.config/midori/config"
     sed -i 's|\(^homepage=\).*$|homepage=http://pxe.ustc.edu.cn/liims/index_iat.html|g' "$F"
-    sed -i 's|http://opac\.lib\.ustc\.edu\.cn|http://iat.lib.ustc.edu.cn:88|g' "$F"
+    sed -i 's|http://opac\.lib\.ustc\.edu\.cn|http://iat.lib.ustc.edu.cn|g' "$F"
     ;;
   *) printf "Unknown profile %s\n" "$profile" >&2;;
 esac
