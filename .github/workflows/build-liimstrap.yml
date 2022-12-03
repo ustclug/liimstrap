@@ -26,7 +26,7 @@ jobs:
     
     - name: Set release tag env
       run: |
-        echo "GITHUB_SHA_SHORT=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $TAG_NAME
+        echo "TAG_NAME=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
         
     - uses: ncipollo/release-action@v1
       with:
