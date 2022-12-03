@@ -32,4 +32,3 @@ jobs:
       with:
         artifacts: "/srv/dest/vmlinuz,/srv/dest/initrd.img,/srv/dest/root.sfs"
         tag: ${{ env.TAG_NAME }}
-        bodyFile: "body.md"
