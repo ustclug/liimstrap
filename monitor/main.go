@@ -127,6 +127,7 @@ func saveState() error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	e := json.NewEncoder(f)
 	clientDataLock.RLock()
 	defer clientDataLock.RUnlock()
