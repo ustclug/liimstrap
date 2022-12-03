@@ -9,25 +9,12 @@ on:
 
 jobs:
 
-  build:
+  release:
 
     runs-on: ubuntu-latest
-    
-          
-
-
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Fix buildtime iptables
-      run: |
-        sudo iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p udp -m udp --dport 53 -j DNAT --to-destination 8.8.8.8:53 
-        sudo iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p tcp -m tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
-        sudo iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p udp -m udp --dport 53 -j SNAT --to-source 127.0.0.1
-        sudo iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p tcp -m tcp --dport 53 -j SNAT --to-source 127.0.0.1
-        dig example.com @202.38.64.1
-        sudo dig example.com @202.38.64.1
-        
+
     - name: Build liimstrap image
       run: docker build -t ustclug/liimstrap:liims-2 .
         
@@ -36,18 +23,13 @@ jobs:
     
     - name: Pack to squashfs file
       run: docker run --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} -e SQUASHFS=true ustclug/liimstrap:liims-2
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - name: S et release tag env
+    
+    - name: Set release tag env
       run: |
-        echo "::set-env name=NOW::$(date +'%Y-%m-%dT%H:%M:%S')"
+        echo "GITHUB_SHA_SHORT=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $TAG_NAME
+        
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "/srv/dest/vmlinuz,/srv/dest/initrd.img,/srv/dest/root.sfs"
-        tag: ${{ env.NOW }}
+        tag: ${{ env.TAG_NAME }}
         bodyFile: "body.md"
