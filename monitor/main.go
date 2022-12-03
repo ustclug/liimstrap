@@ -122,7 +122,6 @@ func loadConfig() error {
 }
 
 func saveState() error {
-	log.Printf("Saving state to %s", stateFile)
 	f, err := os.Create(stateFile)
 	if err != nil {
 		return err
@@ -138,7 +137,7 @@ func loadState() error {
 	d, err := ioutil.ReadFile(stateFile)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			log.Print("No state file found, skipping")
+			log.Printf("State file %s not found, skipping\n", stateFile)
 			return nil
 		}
 		return err
