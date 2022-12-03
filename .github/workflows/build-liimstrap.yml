@@ -18,6 +18,6 @@ jobs:
     - name: Build liimstrap image
       run: docker build -t ustclug/liimstrap:liims-2 .
     - name: Create rootfs file
-      run: docker run -it --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} ustclug/liimstrap:liims-2
+      run: docker run --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} ustclug/liimstrap:liims-2
     - name: Pack to squashfs file
-      run: docker run -it --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} -e SQUASHFS=true ustclug/liimstrap:liims-2
+      run: docker run --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} -e SQUASHFS=true ustclug/liimstrap:liims-2
