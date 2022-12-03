@@ -20,10 +20,10 @@ jobs:
       
     - name: Fix buildtime iptables
       run: |
-        iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p udp -m udp --dport 53 -j DNAT --to-destination 8.8.8.8:53 
-        iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p tcp -m tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
-        iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p udp -m udp --dport 53 -j SNAT --to-source 127.0.0.1
-        iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p tcp -m tcp --dport 53 -j SNAT --to-source 127.0.0.1
+        sudo iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p udp -m udp --dport 53 -j DNAT --to-destination 8.8.8.8:53 
+        sudo iptables-legacy -t nat -A OUTPUT -d 202.38.64.1/32 -p tcp -m tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
+        sudo iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p udp -m udp --dport 53 -j SNAT --to-source 127.0.0.1
+        sudo iptables-legacy -t nat -A POSTROUTING -d 127.0.0.53/32 -p tcp -m tcp --dport 53 -j SNAT --to-source 127.0.0.1
         
     - name: Create rootfs file
       run: docker run --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} ustclug/liimstrap:liims-2
