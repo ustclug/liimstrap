@@ -112,13 +112,6 @@ cp "$BASE/etc/ssh"/* "$ROOT/etc/ssh"
 printf "root:%s\n" "$ROOTPASSWD" | chdo chpasswd
 enserv ssh
 
-# install pkg before resolv changed
-inspkg localepurge
-
-# resolv.conf
-cp "$BASE/etc/resolv.conf" "$ROOT/etc/resolv.conf"
-cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
-
 # dhcpcd
 enserv dhcpcd
 
@@ -181,6 +174,10 @@ inspkg linux-image-amd64 firmware-linux
 
 # Remove unused docs
 rm -rf "$ROOT/usr/share/doc/"*
+
+# resolv.conf
+cp "$BASE/etc/resolv.conf" "$ROOT/etc/resolv.conf"
+cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
 
 # cleanup
 chdo apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
