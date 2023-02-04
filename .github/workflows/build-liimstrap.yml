@@ -24,8 +24,12 @@ jobs:
     - name: Set release tag env
       run: |
         echo "TAG_NAME=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
-        
-    - uses: ncipollo/release-action@v1
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-        artifacts: "/srv/dest/liims/vmlinuz,/srv/dest/liims/initrd.img,/srv/dest/liims/root.sfs"
-        tag: ${{ env.TAG_NAME }}
+        files: |
+          /srv/dest/liims/vmlinuz
+          /srv/dest/liims/initrd.img
+          /srv/dest/liims/root.sfs
+        tag_name: ${{ env.TAG_NAME }}
