@@ -148,6 +148,7 @@ run userdel -fr "$LIIMSUSER" || true
 run useradd -m -o -u 1000 -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 run chown -R "$LIIMSUSER:" "/home/$LIIMSUSER"
+cp "$BASE/user/.bashrc" "$ROOT/root/"
 
 # prevent sogou from modifying fcitx config
 chmod -R a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"
