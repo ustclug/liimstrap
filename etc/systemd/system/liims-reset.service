@@ -3,4 +3,4 @@ Description=Reset LIIMS user
 
 [Service]
 Type=oneshot
-ExecStart=/liims/bin/reset.sh
+ExecStart=/usr/local/bin/liims-reset.sh

@@ -2,16 +2,27 @@
 
 set -e
 
-chdo() {
-    chroot "$ROOT" "$@"
-} 
+BASE="$(dirname "$0")"
+ROOT="$1"
+LIIMSUSER="liims"
 
-enserv() {
-    chroot "$ROOT" systemctl enable "$@"
+if [ ! -d "$ROOT" ]; then
+  exit 1
+fi
+
+run() {
+  chroot "$ROOT" "$@"
 }
 
-inspkg() {
-    DEBIAN_FRONTEND=noninteractive chroot "$ROOT" apt-get install -o Acquire::http::Pipeline-Depth=\"0\" --no-install-recommends --yes "$@"
+add_file() {
+  while [ "$#" -ne 0 ]; do
+    rsync -rlp "$BASE/$1" "$ROOT/$1"
+    shift
+  done
+}
+
+install_package() {
+    DEBIAN_FRONTEND=noninteractive chroot "$ROOT" apt-get install --no-install-recommends --yes "$@"
 }
 
 check_sha256() {
@@ -24,10 +35,6 @@ check_sha256() {
         exit 1
     fi
 }
-
-BASE="$(dirname "$0")"
-ROOT="$1"
-LIIMSUSER="liims"
 
 # root password
 if [ -n "$ROOT_PASSWORD" ]; then
@@ -59,116 +66,105 @@ mount -t sysfs sys "$ROOT/sys"
 mount -t tmpfs none "$ROOT/tmp"
 
 # apt update
-cp "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+add_file /etc/apt/sources.list
 sed -Ei "s,https?://mirrors.ustc.edu.cn,$APT_SOURCE,g" "$ROOT/etc/apt/sources.list"
-chdo apt-get update
+run apt-get update
 
 # install packages
-# following packages may need interactive operations and should take care
-# Install X-related packages
-inspkg xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau\
-    xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth
-# Install CLI tools
-inspkg busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
-    inetutils-telnet iptables-persistent iproute2 \
-    iputils-arping iputils-clockdiff iso-codes \
-    initramfs-tools mtr-tiny ndisc6 netdata nyancat \
-    procps rsync scrot sed ssh tar usbutils vim
-# Install desktop components
-inspkg fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 gnome-icon-theme \
-    gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
-    fonts-wqy-zenhei fbpanel xfonts-terminus fcitx-pinyin fcitx-table-wubi fcitx-ui-classic
-# Install misc packages
-inspkg bash-completion locales net-tools zstd
-# Install extra packages that not in original list
-inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
-    x11-xserver-utils systemd-timesyncd
+install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
+  xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
+  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+  inetutils-telnet iptables-persistent iproute2 \
+  iputils-arping iputils-clockdiff iso-codes \
+  initramfs-tools mtr-tiny ndisc6 netdata nyancat \
+  procps rsync scrot sed ssh tar usbutils vim \
+  fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 \
+  gnome-icon-theme gnome-themes-standard openbox slim fonts-arphic-uming fonts-droid-fallback \
+  fonts-wqy-zenhei fbpanel xfonts-terminus fcitx-pinyin fcitx-table-wubi fcitx-ui-classic \
+  bash-completion locales net-tools zstd \
+  x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
+  x11-xserver-utils systemd-timesyncd
+
 # Install customized midori
 wget --progress=dot:binary -O "$ROOT/tmp/midori.deb" "$MIDORI_URL"
 check_sha256 "$ROOT/tmp/midori.deb" "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
-inspkg /tmp/midori.deb
+install_package /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
 wget --progress=dot:giga -O "$ROOT/tmp/sogoupinyin.deb" "$SOGOUPINYIN_URL"
 check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
-inspkg libasound2 libgomp1  # missing deps in sogoupinyin
-inspkg /tmp/sogoupinyin.deb
+install_package /tmp/sogoupinyin.deb libasound2 libgomp1  # missing deps in sogoupinyin
 
 # Assistant scripts and programs
-mkdir -p "$ROOT/liims/bin"
-echo 'export PATH=$PATH:/liims/bin' > "$ROOT/etc/profile.d/liims.sh"
 echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
-
 for script in "$BASE"/bin/*.sh; do
-    install -Dm 755 "$script" "$ROOT/liims/bin"
+  install -Dm 755 "$script" "$ROOT/usr/local/bin"
 done
 
 unset CFLAGS
-cc "$BASE/bin/xidle.c" -o "$ROOT/liims/bin/xidle" -O2 -s -lX11 -lXext -lXss
+cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXext -lXss
 
 # SSH login for root
-cp "$BASE/etc/ssh"/* "$ROOT/etc/ssh"
-printf "root:%s\n" "$ROOTPASSWD" | chdo chpasswd
-enserv ssh
+add_file /etc/ssh/
+printf "root:%s\n" "$ROOTPASSWD" | run chpasswd
+run systemctl enable ssh
 
 # dhcpcd
-enserv dhcpcd
+run systemctl enable dhcpcd
 
 # time and NTP
 TZ=Asia/Shanghai
 echo "$TZ" > "$ROOT/etc/timezone"
-chdo ln -sfn "/usr/share/zoneinfo/$TZ" /etc/localtime
-echo -e "[Time]\nNTP=time.ustc.edu.cn" > "$ROOT/etc/systemd/timesyncd.conf"
-enserv systemd-timesyncd.service
+run ln -sfn "/usr/share/zoneinfo/$TZ" /etc/localtime
+add_file /etc/systemd/timesyncd.conf
+run systemctl enable systemd-timesyncd.service
 
 # locale
 cp "$BASE/etc/locale.gen" "$ROOT/etc/locale.gen"
-chdo locale-gen
+run locale-gen
 
 # iptables
-mkdir -p "$ROOT/etc/iptables"
-cp "$BASE/etc/iptables/iptables.rules" "$ROOT/etc/iptables/rules.v4"
-cp "$BASE/etc/iptables/ip6tables.rules" "$ROOT/etc/iptables/rules.v6"
-enserv iptables.service
+add_file /etc/iptables/
+run systemctl enable iptables.service
 
 # cron jobs
-install -Dm644 "$BASE/etc/systemd/system"/*.* "$ROOT/etc/systemd/system/"
-enserv liims-reset.timer reboot.timer
+add_file /etc/systemd/system/
+run systemctl enable liims-reset.timer reboot.timer
 
 # slim
-cp "$BASE/etc/slim.conf" "$ROOT/etc/"
-chdo systemctl set-default graphical.target
+add_file /etc/slim.conf
+run systemctl set-default graphical.target
 
 # netdata
-cp -r "$BASE/etc/netdata/" "$ROOT/etc/"
-chdo chown -R netdata:netdata "/usr/share/netdata/web/"
-enserv netdata
+add_file /etc/netdata/
+run chown -R netdata:netdata "/usr/share/netdata/web/"
+run systemctl enable netdata
 
 # prevent systemd from changing network interface name
-chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
+run ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 
 # user specific
-chdo userdel -fr "$LIIMSUSER" || true
-chdo useradd -m -o -u 1000 -g users -s /bin/bash "$LIIMSUSER"
+run userdel -fr "$LIIMSUSER" || true
+run useradd -m -o -u 1000 -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
-chdo chown -R "$LIIMSUSER:" "/home/$LIIMSUSER"
+run chown -R "$LIIMSUSER:" "/home/$LIIMSUSER"
 
 # prevent sogou from modifying fcitx config
-chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
+chmod -R a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"
 
 # hostname
 echo "liims" > "$ROOT/etc/hostname"
 
 # Remove unused locales
-inspkg localepurge
-install -Dm644 "$BASE/etc/locale.nopurge" "$ROOT/etc/locale.nopurge"
-chdo localepurge
+install_package localepurge
+add_file /etc/locale.nopurge
+run localepurge
 
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
-inspkg linux-image-amd64 firmware-linux
+install_package linux-image-amd64 firmware-linux
 
 set +e
 
@@ -176,13 +172,11 @@ set +e
 rm -rf "$ROOT/usr/share/doc/"*
 
 # networking/miscellaneous
-cp "$BASE/etc/resolv.conf" "$ROOT/etc/resolv.conf"
-cp "$BASE/etc/hosts" "$ROOT/etc/hosts"
-cp "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+add_file /etc/hosts /etc/resolv.conf /etc/apt/sources.list
 
 # cleanup
-chdo apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
-chdo apt-get clean
+run apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
+run apt-get clean
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 

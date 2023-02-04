@@ -6,7 +6,7 @@ X_AUTHFILE="/home/$LIIMSUSER/.Xauthority"
 : "${LIIMSUSER:=liims}" "${IDLETIMEOUT:=30000}"
 
 while true; do
-  IDLE=$(/liims/bin/xidle "$X_DISPLAY" "$X_AUTHFILE" || echo 32000)
+  IDLE=$(xidle "$X_DISPLAY" "$X_AUTHFILE" || echo 32000)
   echo "> X idle time: $IDLE"
   test "$IDLE" -ge "$IDLETIMEOUT" && break
   sleep 5

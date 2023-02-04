@@ -4,5 +4,5 @@ Before=midori.service
 
 [Service]
 Type=oneshot
-ExecStart=/liims/bin/chameleon.sh
+ExecStart=/usr/local/bin/chameleon.sh
 RemainAfterExit=yes

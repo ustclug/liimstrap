@@ -34,7 +34,7 @@ Plugin {
         item {
             icon = applications-internet
             name = 瀚海星云客户端
-            action = /liims/bin/bbsclient.sh
+            action = /usr/local/bin/bbsclient.sh
         }
 
         item {
@@ -42,7 +42,7 @@ Plugin {
             name = 彩虹喵喵喵喵喵～
             action = xterm -fullscreen -e nyancat -f 100
         }
- 
+
         item {
             icon = ac-adapter
             name = 重置浏览器

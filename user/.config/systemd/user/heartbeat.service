@@ -5,4 +5,4 @@ After=fcitx.service midori.service
 
 [Service]
 Type=oneshot
-ExecStart=/liims/bin/heartbeat.sh
+ExecStart=/usr/local/bin/heartbeat.sh
