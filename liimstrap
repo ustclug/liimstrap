@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-BASE="$(dirname "$0")"
 
 chdo() {
     chroot "$ROOT" "$@"
@@ -26,30 +25,16 @@ check_sha256() {
     fi
 }
 
+BASE="$(dirname "$0")"
 ROOT="$1"
 LIIMSUSER="liims"
 
-if [ ! -d "$ROOT" ]; then
-    echo "$ROOT is not a directory."
-    exit 1
-elif [ $(id -u) -ne 0 ]; then
-    echo "You are not root!"
-    exit 1
-fi
-
 # root password
-if [ -f "$BASE/.rootpasswd" ]; then
-    ROOTPASSWD=$(<"$BASE/.rootpasswd")
+if [ -n "$ROOT_PASSWORD" ]; then
+  echo "Using root password from environment"
 else
-    while true; do
-        echo -e "root password: "
-        read -s ROOTPASSWD
-        echo -e "root password again: "
-        read -s ROOTPASSWD2
-
-        [ "$ROOTPASSWD" == "$ROOTPASSWD2" ] && break
-    done
-    unset ROOTPASSWD2
+  ROOT_PASSWORD="$(head -c 6 /dev/urandom | base64)"
+  echo "Root password not specified, using \"$ROOT_PASSWORD\""
 fi
 
 # External packages
@@ -57,12 +42,25 @@ MIDORI_URL="${MIDORI_URL:-https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SN
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
 
 # debootstrap
-debootstrap bullseye "$ROOT" https://mirrors.ustc.edu.cn/debian/
-mount proc "$ROOT/proc" -t proc
-mount sysfs "$ROOT/sys" -t sysfs
+debootstrap bullseye "$ROOT" "$APT_SOURCE/debian"
+mount -t tmpfs none "$ROOT/dev"
+chmod 755 "$ROOT/dev"
+mknod -m0666 "$ROOT/dev/null" c 1 3
+mknod -m0666 "$ROOT/dev/random" c 1 8
+mknod -m0666 "$ROOT/dev/urandom" c 1 9
+mknod -m0666 "$ROOT/dev/zero" c 1 5
+ln -sf /proc/self/fd/0 "$DST/dev/stdin"
+ln -sf /proc/self/fd/1 "$DST/dev/stdout"
+ln -sf /proc/self/fd/2 "$DST/dev/stderr"
+mount -t devpts none "$ROOT/dev/pts"
+mount -t proc proc "$ROOT/proc"
+mount -t tmpfs none "$ROOT/run"
+mount -t sysfs sys "$ROOT/sys"
+mount -t tmpfs none "$ROOT/tmp"
 
 # apt update
-install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+cp "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
+sed -Ei "s,https?://mirrors.ustc.edu.cn,$APT_SOURCE,g" "$ROOT/etc/apt/sources.list"
 chdo apt-get update
 
 # install packages
@@ -96,9 +94,6 @@ check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
 
-# Cleanup deb files
-rm -f "$ROOT"/tmp/*.deb
-
 # Assistant scripts and programs
 mkdir -p "$ROOT/liims/bin"
 echo 'export PATH=$PATH:/liims/bin' > "$ROOT/etc/profile.d/liims.sh"
@@ -127,8 +122,7 @@ echo -e "[Time]\nNTP=time.ustc.edu.cn" > "$ROOT/etc/systemd/timesyncd.conf"
 enserv systemd-timesyncd.service
 
 # locale
-echo -e "en_US.UTF-8 UTF-8\nzh_CN.GBK GBK\nzh_CN.UTF-8 UTF-8" > \
-        "$ROOT/etc/locale.gen"
+cp "$BASE/etc/locale.gen" "$ROOT/etc/locale.gen"
 chdo locale-gen
 
 # iptables
@@ -157,7 +151,7 @@ chdo ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 chdo userdel -fr "$LIIMSUSER" || true
 chdo useradd -m -o -u 1000 -g users -s /bin/bash "$LIIMSUSER"
 cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
-chdo chown -R "$LIIMSUSER" "/home/$LIIMSUSER"
+chdo chown -R "$LIIMSUSER:" "/home/$LIIMSUSER"
 
 # prevent sogou from modifying fcitx config
 chmod a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"*
@@ -176,18 +170,25 @@ install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/module
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 inspkg linux-image-amd64 firmware-linux
 
+set +e
+
 # Remove unused docs
 rm -rf "$ROOT/usr/share/doc/"*
 
-# resolv.conf
+# networking/miscellaneous
 cp "$BASE/etc/resolv.conf" "$ROOT/etc/resolv.conf"
-cat "$BASE/etc/hosts" >> "$ROOT/etc/hosts"
+cp "$BASE/etc/hosts" "$ROOT/etc/hosts"
+cp "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
 
 # cleanup
 chdo apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
 chdo apt-get clean
 rm -rf "$ROOT/var"/{backups,tmp}/*
-rm -rf "$ROOT"/{run,tmp}/*
 rm -rf "$ROOT"/*.old
+
+umount "$ROOT/dev/pts"
+umount "$ROOT/dev"
 umount "$ROOT/proc"
+umount "$ROOT/run"
 umount "$ROOT/sys"
+umount "$ROOT/tmp"
