@@ -6,44 +6,40 @@
 
 ## 依赖
 
-使用相同版本的 Debian，安装以下软件包：
-
-```shell
-$ sudo apt install debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev curl
-```
+参见 [Dockerfile](Dockerfile)。
 
 ## 生成
 
 ```sh
-sudo ./liimstrap [ROOT]
+sudo ./liimstrap <ROOT>
 ```
 
-[ROOT]是一个存放镜像根文件系统的目录。
+ROOT 是存放镜像根文件系统的目录。
 
-可以把 root 密码放到一个名为 .rootpasswd 的文件里，该文件和 liimstrap 脚本放在同一级文件夹下。
+镜像的 root 密码可以通过 `ROOT_PASSWORD` 环境变量提供。
 
 `etc/authorized_keys` 文件里放的是 root 远程 SSH 登录的公钥。
 
 ## 压成 SqaushFS 镜像
 
 ```sh
-sudo ./deploy [ROOT] [DEST]
+sudo ./deploy <ROOT> <DEST>
 ```
 
-会在 `[DEST]` 中创建一个名为 `liims<日期>` 的目录，下有三个文件：
+会在 DEST 目录中创建三个文件：
 
 - `vmlinuz` 是内核
 - `initrd.img` 是 initrd
 - `root.sfs` 是根目录的镜像
 
-Grub 配置参见 `grub.example` 文件。
+GRUB 配置参见 `grub.example` 文件。
 
 ## 从 Docker 构建
 
 ```sh
 # docker build -t ustclug/liimstrap:liims-2 .
-# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2  # 此命令创建 rootfs 文件
-# docker run -it --privileged --cap-add=SYS_ADMIN --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test -e SQUASHFS=true ustclug/liimstrap:liims-2  # 此命令创建 rootfs 文件并打包为 squashfs
+# docker run -it --privileged --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test ustclug/liimstrap:liims-2  # 此命令创建 rootfs 内容
+# docker run -it --privileged --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test -e SQUASHFS=true ustclug/liimstrap:liims-2  # 此命令创建 rootfs 内容并打包为 squashfs
 ```
 
 ## 本地调试
@@ -51,7 +47,7 @@ Grub 配置参见 `grub.example` 文件。
 1. 安装 NFS Server（`nfs-kernel-server`）
 2. 配置 `/etc/exports` 如下：
 
-   ```
+   ```sh
    /liims	localhost(ro,no_root_squash,async,insecure,no_subtree_check)
    ```
 
@@ -59,7 +55,7 @@ Grub 配置参见 `grub.example` 文件。
 
 3. 使用以下参数启动 qemu：
 
-   ```
+   ```sh
    qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs"
    ```
 
@@ -67,7 +63,7 @@ Grub 配置参见 `grub.example` 文件。
 
    如果是 squashfs，那么参数对应是：
 
-   ```
+   ```sh
    qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
    ```
 
