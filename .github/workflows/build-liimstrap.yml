@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+
+  release:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build liimstrap image
+      run: docker build -t ustclug/liimstrap:liims-2 .
+        
+    - name: Pack to squashfs file
+      run: docker run --privileged --cap-add=SYS_ADMIN --rm -v /srv/dest:/srv/dest -e ROOT_PASSWORD=${{ secrets.LIIMSTRAP_ROOT_PASSWORD }} -e SQUASHFS=true ustclug/liimstrap:liims-2
+    
+    - name: Set release tag env
+      run: |
+        echo "TAG_NAME=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          /srv/dest/liims/vmlinuz
+          /srv/dest/liims/initrd.img
+          /srv/dest/liims/root.sfs
+        tag_name: ${{ env.TAG_NAME }}
