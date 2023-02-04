@@ -103,11 +103,11 @@ for script in "$BASE"/bin/*.sh; do
 done
 
 unset CFLAGS
-cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXext -lXss
+cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXss
 
 # SSH login for root
 add_file /etc/ssh/
-printf "root:%s\n" "$ROOTPASSWD" | run chpasswd
+printf "root:%s\n" "$ROOT_PASSWORD" | run chpasswd
 run systemctl enable ssh
 
 # dhcpcd
