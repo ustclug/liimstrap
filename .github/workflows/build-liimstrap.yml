@@ -27,5 +27,5 @@ jobs:
         
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "/srv/dest/lims$(date+'%y%m%d')/vmlinuz,/srv/dest/lims$(date+'%y%m%d')/initrd.img,/srv/dest/lims$(date+'%y%m%d')/root.sfs"
+        artifacts: "/srv/dest/liims/vmlinuz,/srv/dest/liims/initrd.img,/srv/dest/liims/root.sfs"
         tag: ${{ env.TAG_NAME }}
