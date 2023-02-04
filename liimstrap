@@ -156,16 +156,16 @@ chmod -R a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"
 # hostname
 echo "liims" > "$ROOT/etc/hostname"
 
-# Remove unused locales
-install_package localepurge
-add_file /etc/locale.nopurge
-run localepurge
-
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 firmware-linux
+
+# Remove unused locales
+install_package localepurge
+add_file /etc/locale.nopurge
+run localepurge
 
 set +e
 
