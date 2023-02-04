@@ -153,8 +153,13 @@ cp "$BASE/user/.bashrc" "$ROOT/root/"
 # prevent sogou from modifying fcitx config
 chmod -R a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"
 
-# hostname
+# hostname & version
 echo "liims" > "$ROOT/etc/hostname"
+VERSION="$(date +%y%m%d)"
+if [ -n "$GITHUB_RUN_NUMBER" ]; then
+  VERSION="$VERSION-gh-$GITHUB_RUN_NUMBER"
+fi
+echo "$VERSION" > "$ROOT/etc/liims_version"
 
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"

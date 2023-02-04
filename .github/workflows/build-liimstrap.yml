@@ -23,6 +23,7 @@ jobs:
       run: |
         docker run --privileged --rm \
           -v /srv/dest:/srv/dest \
+          -e GITHUB_RUN_NUMBER \
           -e ROOT_PASSWORD \
           -e MIDORI_URL \
           -e SOGOUPINYIN_URL \
