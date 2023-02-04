@@ -3,10 +3,9 @@
 shopt -s extglob
 
 ROOT="$1"
-DATE="$(date +%y%m%d)"
-DEST="$2/liims"
+DEST="$2"
 
-if [[ ! -d "$ROOT" || ! -d "$2" ]]; then
+if [[ ! -d "$ROOT" || ! -d "$DEST" ]]; then
     echo "./deploy ROOT DEST" >&2
     exit 1
 fi

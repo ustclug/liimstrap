@@ -52,14 +52,18 @@ else
     unset ROOTPASSWD2
 fi
 
+# External packages
+MIDORI_URL="${MIDORI_URL:-https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb}"
+SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
+
 # debootstrap
-debootstrap bullseye "$ROOT" http://mirrors.ustc.edu.cn/debian/
+debootstrap bullseye "$ROOT" https://mirrors.ustc.edu.cn/debian/
 mount proc "$ROOT/proc" -t proc
 mount sysfs "$ROOT/sys" -t sysfs
 
 # apt update
 install -Dm 644 "$BASE/etc/apt/sources.list" "$ROOT/etc/apt/sources.list"
-chdo apt update
+chdo apt-get update
 
 # install packages
 # following packages may need interactive operations and should take care
@@ -82,12 +86,12 @@ inspkg bash-completion locales net-tools zstd
 inspkg x11-utils libcurl4 curl ca-certificates dbus-x11 jq xfonts-base xfonts-intl-chinese \
     x11-xserver-utils systemd-timesyncd
 # Install customized midori
-curl -o "$ROOT/tmp/midori.deb" https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb
+wget --progress=dot:binary -O "$ROOT/tmp/midori.deb" "$MIDORI_URL"
 check_sha256 "$ROOT/tmp/midori.deb" "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
 inspkg /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
-curl -o "$ROOT/tmp/sogoupinyin.deb" http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb
+wget --progress=dot:giga -O "$ROOT/tmp/sogoupinyin.deb" "$SOGOUPINYIN_URL"
 check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 inspkg libasound2 libgomp1  # missing deps in sogoupinyin
 inspkg /tmp/sogoupinyin.deb
