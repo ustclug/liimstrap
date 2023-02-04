@@ -1,4 +1,4 @@
-# Monitor 简介
+# liims-monitor
 
 See <https://docs.ustclug.org/services/pxe/liims/#monitor>.
 
