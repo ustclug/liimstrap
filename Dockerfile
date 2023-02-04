@@ -7,7 +7,7 @@ RUN sed -Ei "s,https?://(deb|security)\.debian\.org,$APT_SOURCE,g" /etc/apt/sour
     apt-get update && \
     apt-get -y upgrade && \
     apt-get install --no-install-recommends --yes \
-        debootstrap build-essential libcurl4-openssl-dev libx11-dev libxext-dev libxss-dev \
+        debootstrap build-essential libx11-dev libxext-dev libxss-dev \
         curl ca-certificates squashfs-tools rsync && \
     apt-get clean
 

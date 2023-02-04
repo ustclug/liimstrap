@@ -9,13 +9,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build liimstrap image
+    - name: Build Docker image
       run: |
         docker build \
-          --build-arg APT_SOURCE=http://deb.debian.org
+          --build-arg APT_SOURCE=http://deb.debian.org \
           -t ustclug/liimstrap:liims-2 .
 
-    - name: Pack to squashfs file
+    - name: Build liimstrap image
       env:
         ROOT_PASSWORD: ${{ secrets.LIIMSTRAP_ROOT_PASSWORD }}
         MIDORI_URL: ${{ secrets.MIDORI_URL }}
@@ -29,15 +29,16 @@ jobs:
           -e SQUASHFS=true \
           ustclug/liimstrap:liims-2
 
-    - name: Set release tag env
+    - name: Generate release information
+      id: release-info
       run: |
-        echo "TAG_NAME=$(date +'%Y-%m-%d')_$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        echo "TAG_NAME=$(date +'%Y%m%d')-$(echo $GITHUB_SHA | cut -c 1-7)" >> $GITHUB_OUTPUT
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ steps.release-info.outputs.TAG_NAME }}
         files: |
           /srv/dest/vmlinuz
           /srv/dest/initrd.img
           /srv/dest/root.sfs
-        tag_name: ${{ env.TAG_NAME }}
