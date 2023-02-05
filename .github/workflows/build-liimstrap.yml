@@ -33,7 +33,7 @@ jobs:
     - name: Generate release information
       id: release-info
       run: |
-        echo "TAG_NAME=$(date +'%Y%m%d')-$(echo $GITHUB_SHA | cut -c 1-7)" >> $GITHUB_OUTPUT
+        echo "TAG_NAME=$(date +%y%m%d)-gh-$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
 
     - name: Release
       uses: softprops/action-gh-release@v1
