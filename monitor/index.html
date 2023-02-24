@@ -3,7 +3,6 @@
   <head>
     <title>LIIMS Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="30">
     <link rel="icon" type="image/png" sizes="32x32" href="http://pxe.ustc.edu.cn/static/favicon.png">
     <link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">
     <style>
@@ -11,6 +10,7 @@
       .table thead th { border-bottom: none !important; }
       .status-ok { background-color: #00ff7f; }
       .status-down { background-color: #ff7f7f; }
+      .status-unknown { background-color: #cceeee; }
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -36,11 +36,7 @@
             <td>{{$client.IP}}</td>
             <td>{{$client.TimeStr}}</td>
             <td>{{$client.UptimeStr}}</td>
-            {{if eq $client.Status "ok"}}
-              <td class="status-ok">OK</td>
-            {{else}}
-              <td class="status-down">Down</td>
-            {{end}}
+            <td class="status-{{$client.Status}}">{{$client.StatusText}}</td>
           </tr>
           {{end}}
         </tbody>
