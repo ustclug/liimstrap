@@ -7,13 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/fs"
-	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,6 +21,7 @@ import (
 )
 
 type Config struct {
+	Timeout  int64 `json:"timeout"`
 	Machines []struct {
 		Name string `json:"name"`
 		Mac  string `json:"mac"`
@@ -31,16 +31,14 @@ type Config struct {
 type ClientInfo struct {
 	Name    string        `json:"name"`
 	Version string        `json:"version"`
-	Mac     string        `json:"-"`
+	Mac     string        `json:"mac"`
 	IP      string        `json:"ip"`
 	Time    time.Time     `json:"time"`
 	Uptime  time.Duration `json:"uptime"`
 }
 
-const ALIVE_TIMEOUT = 120 * time.Second
-
 func (ci *ClientInfo) Status() string {
-	if time.Since(ci.Time) > ALIVE_TIMEOUT {
+	if time.Since(ci.Time) > aliveTimeout {
 		return "down"
 	}
 	return "ok"
@@ -75,16 +73,30 @@ func (ci *ClientInfo) UptimeStr() string {
 		days, daysPlural, hours, minutes, seconds)
 }
 
+var NonMacChars = regexp.MustCompile("[^0-9a-f]")
+
+func NormalizeMac(mac string) string {
+	mac = NonMacChars.ReplaceAllString(strings.ToLower(mac), "")
+	if len(mac) != 12 {
+		return mac
+	}
+	s := mac[0:2]
+	for i := 2; i < 12; i += 2 {
+		s += ":" + mac[i:i+2]
+	}
+	return s
+}
+
 var (
-	config       Config
 	configFile   string
 	listenPort   int
 	dumpTemplate bool
 	stateFile    string
 
-	macList        []string
-	clientData     = make(map[string]*ClientInfo)
-	clientDataLock sync.RWMutex
+	aliveTimeout time.Duration
+	clientData   []ClientInfo
+	clientIndex  map[string]int
+	clientLock   sync.Mutex
 
 	//go:embed index.html
 	indexTemplateStr string
@@ -92,31 +104,34 @@ var (
 )
 
 func loadConfig() error {
-	s, err := ioutil.ReadFile(configFile)
+	f, err := os.Open(configFile)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(s, &config)
+	defer f.Close()
+	var config Config
+	err = json.NewDecoder(f).Decode(&config)
 	if err != nil {
 		return err
 	}
 
-	clientDataLock.Lock()
-	defer clientDataLock.Unlock()
-	macList = make([]string, len(config.Machines))
-	newData := make(map[string]*ClientInfo)
+	newData := make([]ClientInfo, len(config.Machines))
+	newIndex := make(map[string]int, len(config.Machines)+1)
 	for i, m := range config.Machines {
-		macList[i] = m.Mac
-		if d, ok := clientData[m.Mac]; ok {
-			newData[m.Mac] = d
-		} else {
-			newData[m.Mac] = &ClientInfo{Name: m.Name}
-		}
+		m.Mac = NormalizeMac(m.Mac)
+		newData[i].Name = m.Name
+		newData[i].Mac = m.Mac
+		newIndex[m.Mac] = i
 	}
-	if _, ok := newData[""]; !ok {
-		newData[""] = &ClientInfo{Name: "Unknown"}
+	if _, ok := newIndex[""]; !ok {
+		newIndex[""] = len(newData)
+		newData = append(newData, ClientInfo{Name: "Unknown"})
 	}
+	clientLock.Lock()
+	defer clientLock.Unlock()
+	aliveTimeout = time.Duration(config.Timeout) * time.Second
 	clientData = newData
+	clientIndex = newIndex
 	log.Printf("Loaded configuration, total %d clients", len(clientData))
 	return nil
 }
@@ -127,24 +142,35 @@ func saveState() error {
 		return err
 	}
 	defer f.Close()
-	e := json.NewEncoder(f)
-	clientDataLock.RLock()
-	defer clientDataLock.RUnlock()
-	return e.Encode(clientData)
+	clientLock.Lock()
+	defer clientLock.Unlock()
+	return json.NewEncoder(f).Encode(clientData)
 }
 
 func loadState() error {
-	d, err := ioutil.ReadFile(stateFile)
+	f, err := os.Open(stateFile)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("State file %s not found, skipping\n", stateFile)
 			return nil
 		}
 		return err
 	}
-	clientDataLock.Lock()
-	defer clientDataLock.Unlock()
-	return json.Unmarshal(d, &clientData)
+	defer f.Close()
+	var newData []ClientInfo
+	if err := json.NewDecoder(f).Decode(&newData); err != nil {
+		return err
+	}
+	newIndex := make(map[string]int, len(clientData))
+	for i := range newData {
+		newData[i].Mac = NormalizeMac(newData[i].Mac)
+		newIndex[newData[i].Mac] = i
+	}
+	clientLock.Lock()
+	defer clientLock.Unlock()
+	clientData = newData
+	clientIndex = newIndex
+	return nil
 }
 
 func handleSignal(chSig <-chan os.Signal) {
@@ -173,29 +199,16 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		// Construct data
-		clientDataLock.RLock()
-		defer clientDataLock.RUnlock()
-		payload := make([]ClientInfo, len(clientData))
-		for i, mac := range macList {
-			payload[i] = *clientData[mac]
-
-			var s string
-			for j := 0; j < len(mac); j += 2 {
-				s += ":" + mac[j:j+2]
-			}
-			if len(s) > 0 {
-				s = s[1:]
-			}
-			payload[i].Mac = s
-		}
-
-		err := indexTemplate.Execute(w, payload)
+		clientLock.Lock()
+		defer clientLock.Unlock()
+		err := indexTemplate.Execute(w, clientData)
 		if err != nil {
 			log.Printf("Error rendering index template: %v", err)
 		}
 	} else if r.Method == "POST" {
+		w.Header().Set("Content-Type", "text/plain")
 		r.ParseForm()
-		mac := r.PostFormValue("mac")
+		mac := NormalizeMac(r.PostFormValue("mac"))
 		version := r.PostFormValue("version")
 		uptimeStr := r.PostFormValue("uptime")
 		if mac == "" || version == "" || uptimeStr == "" {
@@ -209,18 +222,17 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// using RLock because it's coarse,
-		// and we know an item will not be modified concurrently
-		clientDataLock.RLock()
-		defer clientDataLock.RUnlock()
-		d, ok := clientData[mac]
+		clientLock.Lock()
+		defer clientLock.Unlock()
+		i, ok := clientIndex[mac]
 		if !ok {
-			d, ok = clientData[""]
+			i, ok = clientIndex[""]
 			if !ok {
 				http.Error(w, "OK", http.StatusOK)
 				return
 			}
 		}
+		d := &clientData[i]
 
 		ip := r.RemoteAddr[:strings.LastIndex(r.RemoteAddr, ":")]
 		if ip[0] == '[' {
@@ -237,38 +249,35 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	flag.StringVar(&configFile, "c", "clients.json", "JSON config of clients")
-	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
-	flag.StringVar(&stateFile, "s", "/var/lib/liims-monitor/state.json", "save state file")
-	flag.BoolVar(&dumpTemplate, "t", false, "dump template")
-
 	indexTemplate = template.Must(template.New("index").Parse(indexTemplateStr))
 }
 
 func main() {
+	flag.StringVar(&configFile, "c", "clients.json", "JSON config of clients")
+	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
+	flag.StringVar(&stateFile, "s", "/var/lib/liims-monitor/state.json", "save state file")
+	flag.BoolVar(&dumpTemplate, "t", false, "dump template")
 	flag.Parse()
 	if dumpTemplate {
 		os.Stdout.Write([]byte(indexTemplateStr))
 		return
 	}
 
-	// $INVOCATION_ID is set by systemd v232+
-	if _, ok := os.LookupEnv("INVOCATION_ID"); ok {
+	// $JOURNAL_STREAM is set by systemd v231+
+	if _, ok := os.LookupEnv("JOURNAL_STREAM"); ok {
 		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	}
 
-	err := loadConfig()
-	if err != nil {
+	if err := loadConfig(); err != nil {
 		log.Fatalf("Cannot load config: %v", err)
 	}
-	err = loadState()
-	if err != nil {
+	if err := loadState(); err != nil {
 		log.Printf("Cannot load saved state: %v", err)
 	} else {
 		log.Printf("Loaded state from %s", stateFile)
 	}
 
-	chSig := make(chan os.Signal)
+	chSig := make(chan os.Signal, 1)
 	signal.Notify(chSig, syscall.SIGHUP, syscall.SIGQUIT)
 	go handleSignal(chSig)
 
@@ -280,7 +289,8 @@ func main() {
 
 	http.HandleFunc("/", handleFunc)
 	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "User-Agent: *\nDisallow: /", http.StatusOK)
 	})
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil))
 }

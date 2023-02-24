@@ -1,3 +1,3 @@
 module liims-monitor
 
-go 1.17
+go 1.20
