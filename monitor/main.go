@@ -121,11 +121,16 @@ func loadConfig() error {
 	if err != nil {
 		return err
 	}
+	clientLock.Lock()
+	defer clientLock.Unlock()
 
 	newData := make([]ClientInfo, len(config.Machines))
 	newIndex := make(map[string]int, len(config.Machines)+1)
 	for i, m := range config.Machines {
 		m.Mac = NormalizeMac(m.Mac)
+		if i, ok := clientIndex[m.Mac]; ok {
+			newData[i] = clientData[i]
+		}
 		newData[i].Name = m.Name
 		newData[i].Mac = m.Mac
 		newIndex[m.Mac] = i
@@ -134,8 +139,6 @@ func loadConfig() error {
 		newIndex[""] = len(newData)
 		newData = append(newData, ClientInfo{Name: "Unknown"})
 	}
-	clientLock.Lock()
-	defer clientLock.Unlock()
 	aliveTimeout = time.Duration(config.Timeout) * time.Second
 	clientData = newData
 	clientIndex = newIndex
