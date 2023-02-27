@@ -183,11 +183,13 @@ func handleSignal(chSig <-chan os.Signal) {
 	for sig := range chSig {
 		switch sig {
 		case syscall.SIGHUP:
+			log.Printf("Received SIGHUP\n")
 			err := loadConfig()
 			if err != nil {
 				log.Printf("Cannot reload config: %v", err)
 			}
 		case syscall.SIGQUIT:
+			log.Printf("Received SIGQUIT\n")
 			err := saveState()
 			if err != nil {
 				log.Printf("Cannot save state: %v", err)
