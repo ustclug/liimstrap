@@ -38,17 +38,13 @@ type ClientInfo struct {
 }
 
 func (ci *ClientInfo) Status() string {
-	return strings.ToLower(ci.StatusText())
-}
-
-func (ci *ClientInfo) StatusText() string {
 	if time.Since(ci.Time) > aliveTimeout {
 		if ci.Mac == "" {
-			return "Unknown"
+			return "unknown"
 		}
-		return "Down"
+		return "down"
 	}
-	return "OK"
+	return "ok"
 }
 
 func (ci *ClientInfo) TimeStr() string {

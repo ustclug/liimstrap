@@ -6,11 +6,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="http://pxe.ustc.edu.cn/static/favicon.png">
     <link rel="stylesheet" href="http://pxe.ustc.edu.cn/static/bootstrap.min.css">
     <style>
-      .table th, .table td { padding: 0.2rem !important; color: black !important; border-color: black !important; }
-      .table thead th { border-bottom: none !important; }
-      .status-ok { background-color: #00ff7f; }
-      .status-down { background-color: #ff7f7f; }
-      .status-unknown { background-color: #cceeee; }
+      .table thead th, .table tbody td { padding: 0.2rem; color: black !important; border-color: black !important; }
+      .table thead th { border-bottom: none; }
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -28,15 +25,21 @@
           </tr>
         </thead>
         <tbody>
-          {{range $index, $client := .}}
+          {{range .}}
           <tr>
-            <td>{{$client.Name}}</td>
-            <td>{{$client.Version}}</td>
-            <td>{{$client.Mac}}</td>
-            <td>{{$client.IP}}</td>
-            <td>{{$client.TimeStr}}</td>
-            <td>{{$client.UptimeStr}}</td>
-            <td class="status-{{$client.Status}}">{{$client.StatusText}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Version}}</td>
+            <td>{{.Mac}}</td>
+            <td>{{.IP}}</td>
+            <td>{{.TimeStr}}</td>
+            <td>{{.UptimeStr}}</td>
+            {{if eq .Status "ok"}}
+              <td class="table-success">OK</td>
+            {{else if eq .Status "down"}}
+              <td class="table-danger">Down</td>
+            {{else}}
+              <td class="table-secondary">Unknown</td>
+            {{end}}
           </tr>
           {{end}}
         </tbody>
