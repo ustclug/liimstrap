@@ -13,3 +13,9 @@ overlay
 loop
 sky2
 squashfs
+
+# Enable Early KMS in initramfs to avoid race condition between drm loading and login manager/Xorg starting
+# Intel
+i915
+# QEMU
+bochs_drm
