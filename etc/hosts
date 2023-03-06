@@ -5,14 +5,14 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-2001:da8:d800:931::153  lug.ustc.edu.cn
+2001:da8:d800:95::102  lug.ustc.edu.cn
 2001:da8:d800:931::94  pxe.ustc.edu.cn
 202.38.74.4  opac.lib.ustc.edu.cn
-202.38.74.2  lib.ustc.edu.cn
+202.38.74.6  lib.ustc.edu.cn
 202.38.64.8  email.ustc.edu.cn
 202.38.74.3  auth.ahadl.org
 202.38.64.3  bbs.ustc.edu.cn
-202.38.93.153  lug.ustc.edu.cn
+202.38.95.102  lug.ustc.edu.cn
 202.38.93.94  pxe.ustc.edu.cn
 202.38.64.246 mis.teach.ustc.edu.cn
 202.38.64.246 ic.lib.ustc.edu.cn

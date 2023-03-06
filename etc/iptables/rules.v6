@@ -1,5 +1,9 @@
 *filter
--N user-filt
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:user-filt - [0:0]
+-A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
 -A user-filt -j RETURN -d 2001:da8:d800::1
 -A user-filt -j RETURN -d 2001:da8:d800:71::638
