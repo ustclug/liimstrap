@@ -103,7 +103,7 @@ var (
 
 	//go:embed index.html
 	indexTemplateStr string
-	indexTemplate    *template.Template
+	indexTemplate    template.Template = *template.Must(template.New("index").Parse(indexTemplateStr))
 )
 
 func loadConfig() error {
@@ -254,10 +254,6 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Error(w, "OK", http.StatusMethodNotAllowed)
 	}
-}
-
-func init() {
-	indexTemplate = template.Must(template.New("index").Parse(indexTemplateStr))
 }
 
 func main() {
