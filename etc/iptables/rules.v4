@@ -3,6 +3,8 @@
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
 :user-filt - [0:0]
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT ! -s pxe.ustc.edu.cn -p tcp --dport 22 -j REJECT
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
 -A user-filt -j RETURN -d 202.38.64.17,202.38.64.7
