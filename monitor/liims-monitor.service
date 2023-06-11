@@ -23,7 +23,7 @@ PrivateTmp=true
 PrivateDevices=true
 ProtectSystem=full
 ProtectHome=true
-InaccessiblePaths=/run
+TemporaryFileSystem=/run
 TemporaryFileSystem=/var:ro
 BindPaths=/var/lib/liims-monitor
 
