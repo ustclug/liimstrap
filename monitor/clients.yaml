@@ -1,0 +1,66 @@
+timeout: 120
+machines:
+  - name: 东区三楼东01
+    mac: 04:d4:c4:a5:d5:5d
+  - name: 东区三楼东02
+    mac: 04:d4:c4:a5:d5:63
+  - name: 东区三楼西01
+    mac: 04:d4:c4:a5:d4:e6
+  - name: 东区三楼西02
+    mac: 04:d4:c4:a5:d4:be
+  - name: 东区四楼东01
+    mac: 04:d4:c4:a5:d4:f8
+  - name: 东区四楼东02
+    mac: 04:d4:c4:a5:d5:f7
+  - name: 东区四楼西01
+    mac: 04:d4:c4:a5:d5:34
+  - name: 东区四楼西02
+    mac: 04:d4:c4:a5:d4:79
+  - name: 西区一楼01
+    mac: 04:d4:c4:a5:d4:77
+  - name: 西区一楼02
+    mac: 04:d4:c4:a5:d4:16
+  - name: 西区一楼03
+    mac: 04:d4:c4:a5:d4:4f
+  - name: 西区二楼01
+    mac: 04:d4:c4:a5:d4:2c
+  - name: 西区二楼02
+    mac: 04:d4:c4:a5:d4:7e
+  - name: 西区二楼03
+    mac: 04:d4:c4:a5:d4:25
+  - name: 西区三楼01
+    mac: 04:d4:c4:a5:d4:ae
+  - name: 西区三楼02
+    mac: 04:d4:c4:a5:d4:8f
+  - name: 西区三楼03
+    mac: 04:d4:c4:a5:d5:13
+  - name: 西区四楼01
+    mac: 04:d4:c4:a5:d4:78
+  - name: 西区四楼02
+    mac: 04:d4:c4:a5:d4:4d
+  - name: 西区四楼03
+    mac: 04:d4:c4:a5:d5:61
+  - name: 西区12楼
+    mac: f4:8e:38:7c:c6:48
+  - name: 南区中文书库左
+    mac: f4:8e:38:7b:ee:f7
+  - name: 南区中文书库右
+    mac: f4:8e:38:7b:eb:d8
+  - name: 先研院机器1
+    mac: f4:8e:38:7c:c4:c4
+  - name: 先研院机器2
+    mac: f4:8e:38:7c:c5:51
+  - name: 高新区1楼1
+    mac: e4:a8:df:96:a9:b8
+  - name: 高新区1楼2
+    mac: e4:a8:df:96:a5:48
+  - name: 高新区8楼东
+    mac: e4:a8:df:96:4c:d9
+  - name: 高新区8楼西
+    mac: e4:a8:df:96:75:79
+  - name: 高新区9楼东
+    mac: e4:a8:df:96:78:4d
+  - name: 高新区9楼西
+    mac: e4:a8:df:96:a8:d9
+  - name: 未知主机
+    mac: ""

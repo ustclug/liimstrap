@@ -18,6 +18,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -107,13 +109,12 @@ var (
 )
 
 func loadConfig() error {
-	f, err := os.Open(configFile)
+	b, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 	var config Config
-	err = json.NewDecoder(f).Decode(&config)
+	err = yaml.Unmarshal(b, &config)
 	if err != nil {
 		return err
 	}
@@ -257,10 +258,10 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	flag.StringVar(&configFile, "c", "clients.json", "JSON config of clients")
+	flag.StringVar(&configFile, "c", "clients.yaml", "YAML config of clients")
 	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
 	flag.StringVar(&stateFile, "s", "/var/lib/liims-monitor/state.json", "save state file")
-	flag.BoolVar(&dumpTemplate, "t", false, "dump template")
+	flag.BoolVar(&dumpTemplate, "t", false, "dump template and exit")
 	flag.Parse()
 	if dumpTemplate {
 		os.Stdout.Write([]byte(indexTemplateStr))
