@@ -202,7 +202,7 @@ func handleSignal(chSig <-chan os.Signal) {
 }
 
 func handleFunc(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet {
 		// Render HTML list
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
@@ -214,7 +214,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error rendering index template: %v", err)
 		}
-	} else if r.Method == "POST" {
+	} else if r.Method == http.MethodPost {
 		w.Header().Set("Content-Type", "text/plain")
 		r.ParseForm()
 		mac := NormalizeMac(r.PostFormValue("mac"))
@@ -257,6 +257,31 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// query location from IP
+func handleIP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	q := r.URL.Query().Get("ip")
+	if q == "" {
+		http.Error(w, "Where's your IP?", http.StatusBadRequest)
+	}
+
+	clientLock.Lock()
+	defer clientLock.Unlock()
+	for _, d := range clientData {
+		if d.IP == q {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(d)
+			return
+		}
+	}
+	http.Error(w, fmt.Sprintf("IP %s not found", q), http.StatusNotFound)
+}
+
 func main() {
 	flag.StringVar(&configFile, "c", "clients.yaml", "YAML config of clients")
 	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
@@ -292,10 +317,12 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/", handleFunc)
-	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handleFunc)
+	mux.HandleFunc("/ip", handleIP)
+	mux.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "User-Agent: *\nDisallow: /", http.StatusOK)
 	})
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", listenPort), mux))
 }
