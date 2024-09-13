@@ -49,7 +49,7 @@ MIDORI_URL="${MIDORI_URL:-https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SN
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
 
 # debootstrap
-debootstrap bullseye "$ROOT" "$APT_SOURCE/debian"
+debootstrap bookworm "$ROOT" "$APT_SOURCE/debian"
 mount -t tmpfs none "$ROOT/dev"
 chmod 755 "$ROOT/dev"
 mknod -m0666 "$ROOT/dev/null" c 1 3
@@ -78,12 +78,17 @@ install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-no
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
-  gnome-icon-theme gnome-themes-standard openbox slim fbpanel \
+  gnome-icon-theme gnome-themes-extra openbox slim \
   fonts-arphic-uming fonts-droid-fallback fonts-wqy-zenhei xfonts-terminus \
   fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 \
   fcitx-pinyin fcitx-table-wubi fcitx-ui-classic \
   bash-completion curl ca-certificates jq systemd-timesyncd locales net-tools zstd \
   x11-utils dbus-x11 xfonts-base xfonts-intl-chinese x11-xserver-utils
+
+# Install fbpanel from bullseye
+wget --progress=dot:binary -O "$ROOT/tmp/fbpanel.deb" "https://mirrors.ustc.edu.cn/debian/pool/main/f/fbpanel/fbpanel_7.0-4_amd64.deb"
+check_sha256 "$ROOT/tmp/fbpanel.deb" "3ad23ecc54fb33a768c9a3c8995b3d5205eae21c06ceec121278e36241876a31"
+install_package /tmp/fbpanel.deb
 
 # Install customized midori
 wget --progress=dot:binary -O "$ROOT/tmp/midori.deb" "$MIDORI_URL"
@@ -125,7 +130,7 @@ run locale-gen
 
 # iptables
 add_file /etc/iptables/
-run systemctl enable iptables.service
+run systemctl enable netfilter-persistent.service
 
 # cron jobs
 add_file /etc/systemd/system/
@@ -181,7 +186,7 @@ rm -rf "$ROOT/usr/share/doc/"*
 add_file /etc/hosts /etc/resolv.conf /etc/apt/sources.list
 
 # cleanup
-run apt purge -y --autoremove ifupdown libfuse2 libisc-export1105 localepurge nano rsyslog tasksel
+run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
 run apt-get clean
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
