@@ -170,7 +170,7 @@ echo "$VERSION" > "$ROOT/etc/liims_version"
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
-install_package linux-image-amd64 firmware-linux
+install_package linux-image-amd64 firmware-linux firmware-realtek
 
 # Remove unused locales
 install_package localepurge
