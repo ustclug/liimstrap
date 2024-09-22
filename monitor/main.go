@@ -53,7 +53,7 @@ func (ci *ClientInfo) TimeStr() string {
 	if ci.Time.IsZero() {
 		return "Never"
 	}
-	return ci.Time.Format("2006-01-02 15:04:05")
+	return ci.Time.Format(time.DateTime)
 }
 
 // Modified from https://gist.github.com/harshavardhana/327e0577c4fed9211f65
@@ -168,15 +168,17 @@ func loadState() error {
 	if err := json.NewDecoder(f).Decode(&newData); err != nil {
 		return err
 	}
-	newIndex := make(map[string]int, len(clientData))
-	for i := range newData {
-		newData[i].Mac = NormalizeMac(newData[i].Mac)
-		newIndex[newData[i].Mac] = i
-	}
 	clientLock.Lock()
 	defer clientLock.Unlock()
-	clientData = newData
-	clientIndex = newIndex
+	for _, info := range newData {
+		info.Mac = NormalizeMac(info.Mac)
+		if index, ok := clientIndex[info.Mac]; ok {
+			clientData[index] = info
+		} else {
+			clientData = append(clientData, info)
+			clientIndex[info.Mac] = len(clientData) - 1
+		}
+	}
 	return nil
 }
 
@@ -185,9 +187,11 @@ func handleSignal(chSig <-chan os.Signal) {
 		switch sig {
 		case syscall.SIGHUP:
 			log.Printf("Received SIGHUP\n")
-			err := loadConfig()
-			if err != nil {
+			if err := loadConfig(); err != nil {
 				log.Printf("Cannot reload config: %v", err)
+			}
+			if err := loadState(); err != nil && !errors.Is(err, os.ErrNotExist) {
+				log.Printf("Cannot load state: %v", err)
 			}
 		case syscall.SIGQUIT:
 			log.Printf("Received SIGQUIT\n")
