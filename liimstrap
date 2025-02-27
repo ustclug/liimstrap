@@ -45,7 +45,7 @@ else
 fi
 
 # External packages
-MIDORI_URL="${MIDORI_URL:-https://ftp.lug.ustc.edu.cn/~taoky/midori-liims_9.0-SNAPSHOT-1640974719_amd64.deb}"
+MIDORI_URL="${MIDORI_URL:-https://ftp.lug.ustc.edu.cn/software/liims/midori-liims_9.0-1_amd64.deb}"
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
 
 # debootstrap
@@ -92,7 +92,7 @@ install_package /tmp/fbpanel.deb
 
 # Install customized midori
 wget --progress=dot:binary -O "$ROOT/tmp/midori.deb" "$MIDORI_URL"
-check_sha256 "$ROOT/tmp/midori.deb" "a82704e17a49071b45ccb2c7c3d4f5ecfbd2759a7942e539efd4ac4742684f4e"
+check_sha256 "$ROOT/tmp/midori.deb" "a9a64bdfb1a0a52761b041b22c0991222a627093311493e883ed8ea6a674a279"
 install_package /tmp/midori.deb
 # Install sogoupinyin
 # ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
