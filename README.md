@@ -1,6 +1,6 @@
 # liimstrap
 
-中国科大图书馆图书查询机自动生成脚本，当前版本基于 Debian Bullseye 开发。
+中国科大图书馆图书查询机自动生成脚本，当前版本基于 Debian Bookworm 开发。
 
 话说，LIIMS 是嘛意思？我猜是 Library Independent Inquery Machine System 吧。
 
