@@ -59,6 +59,7 @@ mknod -m0666 "$ROOT/dev/zero" c 1 5
 ln -sf /proc/self/fd/0 "$DST/dev/stdin"
 ln -sf /proc/self/fd/1 "$DST/dev/stdout"
 ln -sf /proc/self/fd/2 "$DST/dev/stderr"
+ln -sf /proc/self/fd "$ROOT/dev/"
 mkdir -p "$ROOT/dev/pts"
 mount -t devpts none "$ROOT/dev/pts"
 mount -t proc proc "$ROOT/proc"
@@ -170,7 +171,7 @@ echo "$VERSION" > "$ROOT/etc/liims_version"
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
-install_package linux-image-amd64 firmware-linux firmware-realtek
+install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
 # Remove unused locales
 install_package localepurge
