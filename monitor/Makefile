@@ -7,7 +7,7 @@ LDFLAGS := -s -w
 all: $(BIN)
 
 $(BIN): $(SRC)
-	go build -ldflags="$(LDFLAGS)"
+	CGO_ENABLED=0 go build -ldflags="$(LDFLAGS)"
 
 clean:
 	rm -f $(BIN)
