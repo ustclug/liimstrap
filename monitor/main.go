@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"log"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -93,10 +94,12 @@ func NormalizeMac(mac string) string {
 }
 
 var (
-	configFile   string
-	listenPort   int
-	dumpTemplate bool
-	stateFile    string
+	configFile      string
+	listenHost      string
+	listenPort      int
+	useIPFromHeader bool
+	dumpTemplate    bool
+	stateFile       string
 
 	aliveTimeout time.Duration
 	clientData   []ClientInfo
@@ -205,6 +208,26 @@ func handleSignal(chSig <-chan os.Signal) {
 	}
 }
 
+func normalizeIP(ip string) string {
+	ip = strings.TrimSpace(ip)
+	if ip == "" {
+		return ""
+	}
+	if host, _, err := net.SplitHostPort(ip); err == nil {
+		return strings.Trim(host, "[]")
+	}
+	return strings.Trim(ip, "[]")
+}
+
+func getClientIP(r *http.Request) string {
+	if useIPFromHeader {
+		if ip := normalizeIP(r.Header.Get("X-Real-IP")); ip != "" {
+			return ip
+		}
+	}
+	return normalizeIP(r.RemoteAddr)
+}
+
 func handleFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		// Render HTML list
@@ -247,11 +270,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		}
 		d := &clientData[i]
 
-		ip := r.RemoteAddr[:strings.LastIndex(r.RemoteAddr, ":")]
-		if ip[0] == '[' {
-			ip = ip[1 : len(ip)-1]
-		}
-		d.IP = ip
+		d.IP = getClientIP(r)
 		d.Time = time.Now()
 		d.Version = version
 		d.Uptime = time.Duration(uptime) * time.Second
@@ -288,7 +307,9 @@ func handleIP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.StringVar(&configFile, "c", "clients.yaml", "YAML config of clients")
-	flag.IntVar(&listenPort, "p", 3000, "port to listen on")
+	flag.StringVar(&listenHost, "h", "127.0.0.1", "host to listen on")
+	flag.IntVar(&listenPort, "p", 2999, "port to listen on")
+	flag.BoolVar(&useIPFromHeader, "x", false, "Use X-Real-IP header as client IP")
 	flag.StringVar(&stateFile, "s", "/var/lib/liims-monitor/state.json", "save state file")
 	flag.BoolVar(&dumpTemplate, "t", false, "dump template and exit")
 	flag.Parse()
@@ -328,5 +349,5 @@ func main() {
 		w.Header().Set("Content-Type", "text/plain")
 		http.Error(w, "User-Agent: *\nDisallow: /", http.StatusOK)
 	})
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", listenPort), mux))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", listenHost, listenPort), mux))
 }
