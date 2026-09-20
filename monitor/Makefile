@@ -7,7 +7,7 @@ LDFLAGS := -s -w
 all: $(BIN)
 
 $(BIN): $(SRC)
-	CGO_ENABLED=0 go build -ldflags="$(LDFLAGS)"
+	go build -ldflags="$(LDFLAGS)" -trimpath
 
 clean:
 	rm -f $(BIN)
