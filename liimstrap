@@ -88,7 +88,7 @@ install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-no
 
 # Install fbpanel from bullseye
 wget --progress=dot:binary -O "$ROOT/tmp/fbpanel.deb" "https://mirrors.ustc.edu.cn/debian/pool/main/f/fbpanel/fbpanel_7.0-4.2_amd64.deb"
-check_sha256 "$ROOT/tmp/fbpanel.deb" "3ad23ecc54fb33a768c9a3c8995b3d5205eae21c06ceec121278e36241876a31"
+check_sha256 "$ROOT/tmp/fbpanel.deb" "f66747585aa67090006c21508a0d5d57dd55eab053bbcc0cc100f6c2845544f0"
 install_package /tmp/fbpanel.deb
 
 # Install customized midori
