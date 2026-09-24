@@ -1,0 +1,13 @@
+[Unit]
+Description=LIIMS transparent HTTP and TLS proxy
+After=network.target
+Before=display-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/squid --foreground -f /etc/liims/squid.conf
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

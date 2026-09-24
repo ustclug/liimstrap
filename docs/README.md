@@ -8,7 +8,9 @@
 
 GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd 会根据启动参数进行必须的配置（加载 rootfs），之后正常启动系统。
 
-启动参数中的 `boot=nfs` 会被 Debian 的 initramfs-tools 脚本解析为需要根据 `nfsroot` 和 `ip` 参数配置网络并挂载 NFS 对应路径到 `$rootmnt`，之后 `scripts/init-bottom/overlay.sh` 会执行，在已有的基础上挂载 squashfs（如果需要），并且加上 overlay，使得最终的 rootfs 可以读写。否则由于 NFS 是只读的，rootfs 会变成 read-only 的，会导致系统运行出现错误。
+启动参数中的 `boot=http` 会选择自定义 initramfs 脚本。它根据 `ip` 参数配置网络，从 `root_sfs` 指定的 HTTP 地址下载 `root.sfs` 到内存中的 tmpfs。随后 `scripts/init-bottom/overlay.sh` 将其挂载为 squashfs，并加上可写的 overlay。启动时内存需要足够容纳压缩镜像和运行中的系统。
+
+`boot=nfs` 方式指定 NFS 启动：Debian 的 initramfs-tools 根据 `nfsroot` 和 `ip` 参数挂载 NFS 到 `$rootmnt`。随后 overlay 脚本可以直接使用 NFS 根目录，或挂载其中由 `squashfs` 指定的镜像；内存充足时会将镜像复制到 tmpfs。
 
 此外，启动参数可以被程序从 `/proc/cmdline` 读取，自定义程序也会使用。
 
@@ -24,7 +26,21 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 
 ## 网络访问限制
 
-网络访问限制通过 hosts 和 iptables 实现，仅限制 liims 用户。
+网络访问限制仅作用于 UID 1000 (`liims`)。iptables 的 OUTPUT NAT 将其 TCP
+80、3000（心跳）及 443 端口重定向到本机 Squid；filter 表只允许这些本机端口、
+校园 DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。Squid 对 HTTP 检查 Host，对 HTTPS 读取
+ClientHello 中的 SNI，命中 `/etc/liims/allowed-hosts` 才会转发。HTTPS 使用
+peek/splice，浏览器仍直接验证目标站点的证书，不使用 Squid 的签名证书。
+
+`*.ustc.edu.cn` 等允许的站点从 DNS 获取地址；`/etc/hosts` 只保留非科大域名
+的有意映射，包括把若干域名送往 DMZ SNI 代理。Squid 也读取此文件，因此
+HTTPS 转发仍使用原来的
+域名和 SNI。修改允许的域名后需重启 `liims-squid.service`；修改 hosts 后需
+重启 Squid（Squid 只在启动或重新配置时读取 hosts）。
+
+透明 TLS 代理依赖明文 SNI；没有 SNI 的连接会被拒绝。ECH 的外层 SNI 不能
+证明真实目标域名，若浏览器将来启用 ECH，需要另行禁用 ECH 或更新策略。
+HTTP/3 (UDP/443) 不在重定向范围内，会被 filter 表拒绝。
 
 ## SSH
 

@@ -48,19 +48,25 @@ fi
 MIDORI_URL="${MIDORI_URL:-https://github.com/taoky/midori/releases/download/20250808/midori-liims_9.0-1_amd64.deb}"
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
 
+# mount base fs
+mount -t tmpfs --mkdir none "$ROOT/dev"
+chmod 755 "$ROOT/dev"
+touch "$ROOT/dev/null"
+mount --bind /dev/null "$ROOT/dev/null"
+touch "$ROOT/dev/random"
+mount --bind /dev/random "$ROOT/dev/random"
+touch "$ROOT/dev/urandom"
+mount --bind /dev/urandom "$ROOT/dev/urandom"
+touch "$ROOT/dev/zero"
+mount --bind /dev/zero "$ROOT/dev/zero"
 # debootstrap
 debootstrap bookworm "$ROOT" "$APT_SOURCE/debian"
-mount -t tmpfs none "$ROOT/dev"
-chmod 755 "$ROOT/dev"
-mknod -m0666 "$ROOT/dev/null" c 1 3
-mknod -m0666 "$ROOT/dev/random" c 1 8
-mknod -m0666 "$ROOT/dev/urandom" c 1 9
-mknod -m0666 "$ROOT/dev/zero" c 1 5
 ln -sf /proc/self/fd/0 "$DST/dev/stdin"
 ln -sf /proc/self/fd/1 "$DST/dev/stdout"
 ln -sf /proc/self/fd/2 "$DST/dev/stderr"
 ln -sf /proc/self/fd "$ROOT/dev/"
 mkdir -p "$ROOT/dev/pts"
+# bind mount utility fs
 mount -t devpts none "$ROOT/dev/pts"
 mount -t proc proc "$ROOT/proc"
 mount -t tmpfs none "$ROOT/run"
@@ -75,7 +81,7 @@ run apt-get update
 # install packages
 install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
   xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
-  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping openssl squid-openssl \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
@@ -133,9 +139,21 @@ run locale-gen
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
 
+# Transparent browser proxy. Use a dedicated config so the package's default
+# listener cannot expose an unrestricted proxy on a network interface.
+add_file /etc/liims/
+run openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+  -subj /CN=liims-intercept-unused \
+  -keyout /etc/liims/squid.pem -out /etc/liims/squid.crt
+cat "$ROOT/etc/liims/squid.crt" >> "$ROOT/etc/liims/squid.pem"
+rm "$ROOT/etc/liims/squid.crt"
+run chown root:proxy /etc/liims/squid.pem
+run chmod 640 /etc/liims/squid.pem
+run systemctl disable squid.service
+
 # cron jobs
 add_file /etc/systemd/system/
-run systemctl enable liims-reset.timer reboot.timer
+run systemctl enable liims-squid.service liims-reset.timer reboot.timer
 
 # slim
 add_file /etc/slim.conf
@@ -170,6 +188,8 @@ echo "$VERSION" > "$ROOT/etc/liims_version"
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
+install -Dm755 "$BASE/initramfs-tools/hooks/http-root" "$ROOT/etc/initramfs-tools/hooks/http-root"
+install -Dm755 "$BASE/initramfs-tools/scripts/http" "$ROOT/etc/initramfs-tools/scripts/http"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
