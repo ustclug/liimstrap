@@ -44,28 +44,34 @@ GRUB 配置参见 `grub.example` 文件。
 
 ## 本地调试
 
-1. 安装 NFS Server（`nfs-kernel-server`）
-2. 配置 `/etc/exports` 如下：
+1. 在包含 `vmlinuz`、`initrd.img` 和 `root.sfs` 的目录启动 HTTP 服务：
 
    ```sh
-   /liims	localhost(ro,no_root_squash,async,insecure,no_subtree_check)
+   python3 -m http.server 8000
    ```
 
-   其中 /liims 是生成文件所在的目录。编辑完成后，执行 `exportfs -ra` 命令更新。
-
-3. 使用以下参数启动 qemu：
+2. 在另一个终端中，从同一目录启动 qemu：
 
    ```sh
-   qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs"
+   qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 2g -machine accel=kvm -append "ip=dhcp boot=http root_sfs=http://10.0.2.2:8000/root.sfs"
    ```
 
-   你的当前所在目录需要有生成的 vmlinuz 和 initrd.img 文件，内存等参数可以按需调整。
+   `root.sfs` 会下载到内存，内存容量需要同时容纳压缩镜像和运行中的系统；根据实际镜像大小调整 `-m`。
 
-   如果是 squashfs，那么参数对应是：
+### NFS 启动
 
-   ```sh
-   qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
-   ```
+安装 `nfs-kernel-server`，将镜像目录通过 `/etc/exports` 导出，例如：
+
+```sh
+/liims localhost(ro,no_root_squash,async,insecure,no_subtree_check)
+```
+
+执行 `exportfs -ra` 后，可以直接使用 NFS 根目录，或使用 NFS 上的 squashfs 镜像：
+
+```sh
+qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs"
+qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 700m -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
+```
 
 ## 技术细节
 

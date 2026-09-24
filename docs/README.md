@@ -8,7 +8,9 @@
 
 GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd 会根据启动参数进行必须的配置（加载 rootfs），之后正常启动系统。
 
-启动参数中的 `boot=nfs` 会被 Debian 的 initramfs-tools 脚本解析为需要根据 `nfsroot` 和 `ip` 参数配置网络并挂载 NFS 对应路径到 `$rootmnt`，之后 `scripts/init-bottom/overlay.sh` 会执行，在已有的基础上挂载 squashfs（如果需要），并且加上 overlay，使得最终的 rootfs 可以读写。否则由于 NFS 是只读的，rootfs 会变成 read-only 的，会导致系统运行出现错误。
+启动参数中的 `boot=http` 会选择自定义 initramfs 脚本。它根据 `ip` 参数配置网络，从 `root_sfs` 指定的 HTTP 地址下载 `root.sfs` 到内存中的 tmpfs。随后 `scripts/init-bottom/overlay.sh` 将其挂载为 squashfs，并加上可写的 overlay。启动时内存需要足够容纳压缩镜像和运行中的系统。
+
+`boot=nfs` 方式指定 NFS 启动：Debian 的 initramfs-tools 根据 `nfsroot` 和 `ip` 参数挂载 NFS 到 `$rootmnt`。随后 overlay 脚本可以直接使用 NFS 根目录，或挂载其中由 `squashfs` 指定的镜像；内存充足时会将镜像复制到 tmpfs。
 
 此外，启动参数可以被程序从 `/proc/cmdline` 读取，自定义程序也会使用。
 
