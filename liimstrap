@@ -87,7 +87,7 @@ install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-no
   x11-utils dbus-x11 xfonts-base xfonts-intl-chinese x11-xserver-utils
 
 # Install fbpanel from bullseye
-wget --progress=dot:binary -O "$ROOT/tmp/fbpanel.deb" "https://mirrors.ustc.edu.cn/debian/pool/main/f/fbpanel/fbpanel_7.0-4_amd64.deb"
+wget --progress=dot:binary -O "$ROOT/tmp/fbpanel.deb" "https://mirrors.ustc.edu.cn/debian/pool/main/f/fbpanel/fbpanel_7.0-4.2_amd64.deb"
 check_sha256 "$ROOT/tmp/fbpanel.deb" "3ad23ecc54fb33a768c9a3c8995b3d5205eae21c06ceec121278e36241876a31"
 install_package /tmp/fbpanel.deb
 
