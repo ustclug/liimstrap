@@ -81,7 +81,7 @@ run apt-get update
 # install packages
 install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
   xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
-  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping openssl squid-openssl \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
@@ -139,9 +139,21 @@ run locale-gen
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
 
+# Transparent browser proxy. Use a dedicated config so the package's default
+# listener cannot expose an unrestricted proxy on a network interface.
+add_file /etc/liims/
+run openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+  -subj /CN=liims-intercept-unused \
+  -keyout /etc/liims/squid.pem -out /etc/liims/squid.crt
+cat "$ROOT/etc/liims/squid.crt" >> "$ROOT/etc/liims/squid.pem"
+rm "$ROOT/etc/liims/squid.crt"
+run chown root:proxy /etc/liims/squid.pem
+run chmod 640 /etc/liims/squid.pem
+run systemctl disable squid.service
+
 # cron jobs
 add_file /etc/systemd/system/
-run systemctl enable liims-reset.timer reboot.timer
+run systemctl enable liims-squid.service liims-reset.timer reboot.timer
 
 # slim
 add_file /etc/slim.conf

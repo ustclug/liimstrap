@@ -1,36 +1,24 @@
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 80 -j REDIRECT --to-ports 3128
+-A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 3000 -j REDIRECT --to-ports 3128
+-A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 443 -j REDIRECT --to-ports 3129
+COMMIT
 *filter
 :INPUT ACCEPT [0:0]
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
 :user-filt - [0:0]
 -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A INPUT ! -s pxe.ustc.edu.cn -p tcp --dport 22 -j REJECT
--A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+-A INPUT ! -s 202.38.93.94 -p tcp --dport 22 -j REJECT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
--A user-filt -j RETURN -d 202.38.64.17,202.38.64.7
--A user-filt -j RETURN -d 202.38.64.1
--A user-filt -j RETURN -d opac.lib.ustc.edu.cn
--A user-filt -j RETURN -d lib.ustc.edu.cn
--A user-filt -j RETURN -d email.ustc.edu.cn
--A user-filt -j RETURN -d auth.ahadl.org
--A user-filt -j RETURN -d bbs.ustc.edu.cn
--A user-filt -j RETURN -d mis.teach.ustc.edu.cn
--A user-filt -j RETURN -d ic.lib.ustc.edu.cn
--A user-filt -j RETURN -d id.ustc.edu.cn
--A user-filt -j RETURN -d passport.ustc.edu.cn
--A user-filt -j RETURN -d sls.smartstudy.com
--A user-filt -j RETURN -d api.lib.ustc.edu.cn
--A user-filt -j RETURN -d iat.ustc.edu.cn
--A user-filt -j RETURN -d iat.lib.ustc.edu.cn
--A user-filt -j RETURN -d hs.lib.ustc.edu.cn
--A user-filt -j RETURN -d lug.ustc.edu.cn
--A user-filt -j RETURN -d 202.38.93.94
--A user-filt -j RETURN -d 202.38.93.41
--A user-filt -j RETURN -d 202.38.74.48
--A user-filt -j RETURN -d 202.38.74.47
--A user-filt -j RETURN -d 192.168.74.7
--A user-filt -j RETURN -d 202.38.93.222
--A user-filt -j RETURN -d 202.38.64.246
--A user-filt -j RETURN -d 202.38.74.8
+-A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+-A user-filt -o lo -d 127.0.0.1 -p tcp -m multiport --dports 3128,3129 -j RETURN
+-A user-filt -d 202.38.64.1 -p udp --dport 53 -j RETURN
+-A user-filt -d 202.38.64.1 -p tcp --dport 53 -j RETURN
+-A user-filt -d 202.38.64.3 -p tcp --dport 23 -j RETURN
 -A user-filt -j REJECT
 COMMIT
