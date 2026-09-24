@@ -48,19 +48,25 @@ fi
 MIDORI_URL="${MIDORI_URL:-https://github.com/taoky/midori/releases/download/20250808/midori-liims_9.0-1_amd64.deb}"
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
 
+# mount base fs
+mount -t tmpfs --mkdir none "$ROOT/dev"
+chmod 755 "$ROOT/dev"
+touch "$ROOT/dev/null"
+mount --bind /dev/null "$ROOT/dev/null"
+touch "$ROOT/dev/random"
+mount --bind /dev/random "$ROOT/dev/random"
+touch "$ROOT/dev/urandom"
+mount --bind /dev/urandom "$ROOT/dev/urandom"
+touch "$ROOT/dev/zero"
+mount --bind /dev/zero "$ROOT/dev/zero"
 # debootstrap
 debootstrap bookworm "$ROOT" "$APT_SOURCE/debian"
-mount -t tmpfs none "$ROOT/dev"
-chmod 755 "$ROOT/dev"
-mknod -m0666 "$ROOT/dev/null" c 1 3
-mknod -m0666 "$ROOT/dev/random" c 1 8
-mknod -m0666 "$ROOT/dev/urandom" c 1 9
-mknod -m0666 "$ROOT/dev/zero" c 1 5
 ln -sf /proc/self/fd/0 "$DST/dev/stdin"
 ln -sf /proc/self/fd/1 "$DST/dev/stdout"
 ln -sf /proc/self/fd/2 "$DST/dev/stderr"
 ln -sf /proc/self/fd "$ROOT/dev/"
 mkdir -p "$ROOT/dev/pts"
+# bind mount utility fs
 mount -t devpts none "$ROOT/dev/pts"
 mount -t proc proc "$ROOT/proc"
 mount -t tmpfs none "$ROOT/run"
