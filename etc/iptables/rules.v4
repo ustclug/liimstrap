@@ -16,8 +16,10 @@ COMMIT
 -A INPUT ! -s 202.38.93.94 -p tcp --dport 22 -j REJECT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
--A user-filt -o lo -d 127.0.0.1 -p tcp -m multiport --dports 3128,3129 -j RETURN
+-A user-filt -d 127.0.0.1 -p tcp -m multiport --dports 3128,3129 -j RETURN
 -A user-filt -d 202.38.64.1 -p udp --dport 53 -j RETURN
+-A user-filt -d 202.38.64.56 -p udp --dport 53 -j RETURN
+-A user-filt -d 202.38.64.17 -p udp --dport 53 -j RETURN
 -A user-filt -d 202.38.64.1 -p tcp --dport 53 -j RETURN
 -A user-filt -d 202.38.64.3 -p tcp --dport 23 -j RETURN
 -A user-filt -j REJECT
