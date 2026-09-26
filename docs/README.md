@@ -27,16 +27,17 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 ## 网络访问限制
 
 网络访问限制仅作用于 UID 1000 (`liims`)。iptables 的 OUTPUT NAT 将其 TCP
-80、3000（心跳）及 443 端口重定向到本机 Squid；filter 表只允许这些本机端口、
-校园 DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。Squid 对 HTTP 检查 Host，对 HTTPS 读取
-ClientHello 中的 SNI，命中 `/etc/liims/allowed-hosts` 才会转发。HTTPS 使用
-peek/splice，浏览器仍直接验证目标站点的证书，不使用 Squid 的签名证书。
+80、3000（心跳）及 443 端口重定向到本机 GOST；filter 表只允许这些本机端口、
+校园 DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。GOST 对 HTTP 检查 Host，对 HTTPS 读取
+ClientHello 中的 SNI，命中 `/etc/gost/bypass.txt` 才会转发。GOST 只嗅探连接目标，
+不终止 TLS，浏览器仍直接验证目标站点的证书。
+`bypass.txt` 开头的 IPv4/IPv6 CIDR 用于放行嗅探前的目标 IP 检查；CIDR 不匹配
+域名，因此实际的 HTTP Host 和 TLS SNI 仍必须命中后续的精确域名列表。
 
-`*.ustc.edu.cn` 等允许的站点从 DNS 获取地址；`/etc/hosts` 只保留非科大域名
-的有意映射，包括把若干域名送往 DMZ SNI 代理。Squid 也读取此文件，因此
-HTTPS 转发仍使用原来的
-域名和 SNI。修改允许的域名后需重启 `liims-squid.service`；修改 hosts 后需
-重启 Squid（Squid 只在启动或重新配置时读取 hosts）。
+允许的站点通常从 DNS 获取地址；`/etc/gost/hosts.txt` 保存有意的域名映射，
+包括把若干域名送往 DMZ SNI 代理，同时保留浏览器请求中的原域名和 SNI。
+修改 `/etc/gost/bypass.txt` 或 `/etc/gost/hosts.txt` 后需重启
+`liims-gost.service`。
 
 透明 TLS 代理依赖明文 SNI；没有 SNI 的连接会被拒绝。ECH 的外层 SNI 不能
 证明真实目标域名，若浏览器将来启用 ECH，需要另行禁用 ECH 或更新策略。

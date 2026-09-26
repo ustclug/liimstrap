@@ -47,6 +47,7 @@ fi
 # External packages
 MIDORI_URL="${MIDORI_URL:-https://github.com/taoky/midori/releases/download/20250808/midori-liims_9.0-1_amd64.deb}"
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
+GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
 # mount base fs
 mount -t tmpfs --mkdir none "$ROOT/dev"
@@ -81,7 +82,7 @@ run apt-get update
 # install packages
 install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
   xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
-  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping openssl squid-openssl \
+  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
@@ -106,6 +107,13 @@ install_package /tmp/midori.deb
 wget --progress=dot:giga -O "$ROOT/tmp/sogoupinyin.deb" "$SOGOUPINYIN_URL"
 check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 install_package /tmp/sogoupinyin.deb libasound2 libgomp1  # missing deps in sogoupinyin
+
+# Install GOST, pinned to a release that supports hostname whitelisting on
+# transparently redirected connections.
+wget --progress=dot:giga -O "$ROOT/tmp/gost.tar.gz" "$GOST_URL"
+check_sha256 "$ROOT/tmp/gost.tar.gz" "676fb7f78d267b6ae73df719c0c7f2b565dde7147da935cfafbc1e1da558b6d5"
+tar -xzf "$ROOT/tmp/gost.tar.gz" -C "$ROOT/usr/local/bin" gost
+chmod 755 "$ROOT/usr/local/bin/gost"
 
 # Assistant scripts and programs
 echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
@@ -139,21 +147,13 @@ run locale-gen
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
 
-# Transparent browser proxy. Use a dedicated config so the package's default
-# listener cannot expose an unrestricted proxy on a network interface.
-add_file /etc/liims/
-run openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-  -subj /CN=liims-intercept-unused \
-  -keyout /etc/liims/squid.pem -out /etc/liims/squid.crt
-cat "$ROOT/etc/liims/squid.crt" >> "$ROOT/etc/liims/squid.pem"
-rm "$ROOT/etc/liims/squid.crt"
-run chown root:proxy /etc/liims/squid.pem
-run chmod 640 /etc/liims/squid.pem
-run systemctl disable squid.service
+# Transparent browser proxy. All listeners are bound to loopback in the
+# dedicated GOST configuration.
+add_file /etc/gost/
 
 # cron jobs
 add_file /etc/systemd/system/
-run systemctl enable liims-squid.service liims-reset.timer reboot.timer
+run systemctl enable liims-gost.service liims-reset.timer reboot.timer
 
 # slim
 add_file /etc/slim.conf

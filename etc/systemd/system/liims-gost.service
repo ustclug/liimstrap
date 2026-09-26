@@ -5,7 +5,7 @@ Before=display-manager.service
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/squid --foreground -f /etc/liims/squid.conf
+ExecStart=/usr/local/bin/gost -C /etc/gost/gost.yml
 Restart=always
 RestartSec=2
 
