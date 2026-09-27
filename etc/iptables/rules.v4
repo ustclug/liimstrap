@@ -5,7 +5,7 @@
 :POSTROUTING ACCEPT [0:0]
 -A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 80 -j REDIRECT --to-ports 3128
 -A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 3000 -j REDIRECT --to-ports 3128
--A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 443 -j REDIRECT --to-ports 3129
+-A OUTPUT -m owner --uid-owner 1000 -p tcp --dport 443 -j REDIRECT --to-ports 3128
 COMMIT
 *filter
 :INPUT ACCEPT [0:0]
@@ -16,7 +16,7 @@ COMMIT
 -A INPUT ! -s 202.38.93.94 -p tcp --dport 22 -j REJECT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
--A user-filt -d 127.0.0.1 -p tcp -m multiport --dports 3128,3129 -j RETURN
+-A user-filt -d 127.0.0.1 -p tcp --dport 3128 -j RETURN
 -A user-filt -d 202.38.64.1 -p udp --dport 53 -j RETURN
 -A user-filt -d 202.38.64.56 -p udp --dport 53 -j RETURN
 -A user-filt -d 202.38.64.17 -p udp --dport 53 -j RETURN

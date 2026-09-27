@@ -1,55 +1,21 @@
 services:
-  - name: liims-http-ipv4
+  - name: liims-sni-ipv4
     addr: "127.0.0.1:3128"
     bypass: liims-hosts
     hosts: liims-hosts
     handler:
-      type: red
-      metadata:
-        sniffing: true
-        sniffing.timeout: 5s
-        sniffing.fallback: false
+      type: sni
     listener:
-      type: red
+      type: tcp
 
-  - name: liims-http-ipv6
+  - name: liims-sni-ipv6
     addr: "[::1]:3128"
     bypass: liims-hosts
     hosts: liims-hosts
     handler:
-      type: red
-      metadata:
-        sniffing: true
-        sniffing.timeout: 5s
-        sniffing.fallback: false
+      type: sni
     listener:
-      type: red
-
-  - name: liims-https-ipv4
-    addr: "127.0.0.1:3129"
-    bypass: liims-hosts
-    hosts: liims-hosts
-    handler:
-      type: red
-      metadata:
-        sniffing: true
-        sniffing.timeout: 5s
-        sniffing.fallback: false
-    listener:
-      type: red
-
-  - name: liims-https-ipv6
-    addr: "[::1]:3129"
-    bypass: liims-hosts
-    hosts: liims-hosts
-    handler:
-      type: red
-      metadata:
-        sniffing: true
-        sniffing.timeout: 5s
-        sniffing.fallback: false
-    listener:
-      type: red
+      type: tcp
 
 bypasses:
   - name: liims-hosts

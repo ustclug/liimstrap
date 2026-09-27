@@ -27,12 +27,12 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 ## 网络访问限制
 
 网络访问限制仅作用于 UID 1000 (`liims`)。iptables 的 OUTPUT NAT 将其 TCP
-80、3000（心跳）及 443 端口重定向到本机 GOST；filter 表只允许这些本机端口、
+80、3000（心跳）及 443 端口重定向到本机 GOST 的 3128 端口；filter 表只允许这些本机端口、
 校园 DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。GOST 对 HTTP 检查 Host，对 HTTPS 读取
 ClientHello 中的 SNI，命中 `/etc/gost/bypass.txt` 才会转发。GOST 只嗅探连接目标，
 不终止 TLS，浏览器仍直接验证目标站点的证书。
-`bypass.txt` 开头的 IPv4/IPv6 CIDR 用于放行嗅探前的目标 IP 检查；CIDR 不匹配
-域名，因此实际的 HTTP Host 和 TLS SNI 仍必须命中后续的精确域名列表。
+GOST 使用 SNI handler 从请求中提取 HTTP Host 或 TLS SNI，再按主机名转发，
+不依赖连接的原始目标地址。
 
 允许的站点通常从 DNS 获取地址；`/etc/gost/hosts.txt` 保存有意的域名映射，
 包括把若干域名送往 DMZ SNI 代理，同时保留浏览器请求中的原域名和 SNI。
