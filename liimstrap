@@ -191,12 +191,18 @@ install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/networkd.sh" "$ROOT/et
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
+# Install systemd-resolved
+install_package systemd-resolved
+# Recover build chroot's DNS
+cp --remove-destination /etc/resolv.conf "$ROOT/etc/resolv.conf"
+# The initramfs uses dhcpcd for the boot lease. networkd takes over in the
+# real system using the interface configuration written by networkd.sh.
+run systemctl enable systemd-networkd.service systemd-resolved.service
+
 # Remove unused locales
 install_package localepurge
 add_file /etc/locale.nopurge
 run localepurge
-
-set +e
 
 # Remove unused docs
 rm -rf "$ROOT/usr/share/doc/"*
@@ -206,13 +212,11 @@ add_file /etc/hosts /etc/apt/sources.list
 
 # cleanup
 run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
-set -e
-install_package systemd-resolved
-# The initramfs uses dhcpcd for the boot lease. networkd takes over in the
-# real system using the interface configuration written by networkd.sh.
-run systemctl enable systemd-networkd.service systemd-resolved.service
 run apt-get clean
+
+# Linking /etc/resolv.conf causing all DNS resolution fail in build container, make it after all operations requiring network
 ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOT/etc/resolv.conf"
+
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 
