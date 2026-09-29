@@ -212,8 +212,7 @@ run apt-get clean
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 
-umount "$ROOT/dev/pts"
-umount "$ROOT/dev"
+umount -R "$ROOT/dev"
 umount "$ROOT/proc"
 umount "$ROOT/run"
 umount "$ROOT/sys"
