@@ -12,6 +12,8 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 
 `boot=nfs` 方式指定 NFS 启动：Debian 的 initramfs-tools 根据 `nfsroot` 和 `ip` 参数挂载 NFS 到 `$rootmnt`。随后 overlay 脚本可以直接使用 NFS 根目录，或挂载其中由 `squashfs` 指定的镜像；内存充足时会将镜像复制到 tmpfs。
 
+initramfs 在 `/run/net-<接口>.conf` 中记录启动网卡的 DHCP 或静态配置，并在切换到真实系统前生成对应的 `/run/systemd/network/05-liims-boot.network`。真实系统由 `systemd-networkd` 管理该网卡，保留启动阶段已有的地址和路由；`systemd-resolved` 从网卡配置获得 DNS，`/etc/resolv.conf` 指向它的本地 `127.0.0.53` 解析器。
+
 此外，启动参数可以被程序从 `/proc/cmdline` 读取，自定义程序也会使用。
 
 ## 查询机辅助脚本工具（`bin`）
@@ -28,7 +30,7 @@ GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd �
 
 网络访问限制仅作用于 UID 1000 (`liims`)。iptables 的 OUTPUT NAT 将其 TCP
 80、3000（心跳）及 443 端口重定向到本机 GOST 的 3128 端口；filter 表只允许这些本机端口、
-校园 DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。GOST 对 HTTP 检查 Host，对 HTTPS 读取
+本机 `127.0.0.53` DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。上游 DNS 查询由 `systemd-resolved` 发出，不受 UID 1000 的规则限制。GOST 对 HTTP 检查 Host，对 HTTPS 读取
 ClientHello 中的 SNI，命中 `/etc/gost/bypass.txt` 才会转发。GOST 只嗅探连接目标，
 不终止 TLS，浏览器仍直接验证目标站点的证书。
 GOST 使用 SNI handler 从请求中提取 HTTP Host 或 TLS SNI，再按主机名转发，

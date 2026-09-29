@@ -17,7 +17,5 @@ COMMIT
 -A OUTPUT -m owner --uid-owner 1000 -j user-filt
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 -A user-filt -d ::1 -p tcp --dport 3128 -j RETURN
--A user-filt -d 2001:da8:d800::1 -p udp --dport 53 -j RETURN
--A user-filt -d 2001:da8:d800::1 -p tcp --dport 53 -j RETURN
 -A user-filt -j REJECT
 COMMIT

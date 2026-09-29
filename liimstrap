@@ -82,7 +82,7 @@ run apt-get update
 # install packages
 install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
   xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
-  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+  busybox dhcpcd-base dnsutils htop inetutils-ftp iputils-ping \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
@@ -128,9 +128,6 @@ cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXss
 add_file /etc/ssh/
 printf "root:%s\n" "$ROOT_PASSWORD" | run chpasswd
 run systemctl enable ssh
-
-# dhcpcd
-run systemctl enable dhcpcd
 
 # time and NTP
 TZ=Asia/Shanghai
@@ -190,6 +187,7 @@ install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
 install -Dm755 "$BASE/initramfs-tools/hooks/http-root" "$ROOT/etc/initramfs-tools/hooks/http-root"
 install -Dm755 "$BASE/initramfs-tools/scripts/http" "$ROOT/etc/initramfs-tools/scripts/http"
+install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/networkd.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/networkd.sh"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
@@ -204,11 +202,17 @@ set +e
 rm -rf "$ROOT/usr/share/doc/"*
 
 # networking/miscellaneous
-add_file /etc/hosts /etc/resolv.conf /etc/apt/sources.list
+add_file /etc/hosts /etc/apt/sources.list
 
 # cleanup
 run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
+set -e
+install_package systemd-resolved
+# The initramfs uses dhcpcd for the boot lease. networkd takes over in the
+# real system using the interface configuration written by networkd.sh.
+run systemctl enable systemd-networkd.service systemd-resolved.service
 run apt-get clean
+ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOT/etc/resolv.conf"
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 
