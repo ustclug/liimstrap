@@ -2,6 +2,7 @@
 opac.lib.ustc.edu.cn
 lib.ustc.edu.cn
 email.ustc.edu.cn
+mail.ustc.edu.cn
 auth.ahadl.org
 bbs.ustc.edu.cn
 mis.teach.ustc.edu.cn
