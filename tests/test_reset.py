@@ -54,6 +54,30 @@ find_session
         ]]:
             self.assertNotEqual(self.selection(rows).returncode, 0)
 
+    def test_default_greetd_session_is_selected(self):
+        result = self.selection([
+            ("1", "liims", "greetd-greeter", "no", "seat0"),
+            ("2", "liims", "systemd-user", "no", ""),
+        ])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "1")
+
+    def test_greeter_still_requires_local_user_and_seat(self):
+        for name, remote, seat in [
+            ("root", "no", "seat0"),
+            ("liims", "yes", "seat0"),
+            ("liims", "no", ""),
+        ]:
+            self.assertNotEqual(self.selection([
+                ("1", name, "greetd-greeter", remote, seat),
+            ]).returncode, 0)
+
+    def test_mixed_greetd_sessions_are_ambiguous(self):
+        self.assertNotEqual(self.selection([
+            ("1", "liims", "greetd-greeter", "no", "seat0"),
+            ("3", "liims", "greetd", "no", "seat0"),
+        ]).returncode, 0)
+
     def test_unavailable_monitor_does_not_reset(self):
         result = run_shell("""
 find_session() { echo c1; }

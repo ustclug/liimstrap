@@ -47,6 +47,19 @@ docker run -it --privileged --rm -v $DATA_PATH:/srv/dest -e ROOT_PASSWORD=test -
 
 ## 本地调试
 
+Rootless Podman 生成的 rootfs 在宿主机上使用映射后的 UID/GID，不能直接通过
+NFS 作为根目录启动，也不能在宿主机上直接用 `sudo ./deploy` 打包。
+需要在同一用户的 Podman 用户命名空间中打包，恢复镜像里的 UID/GID：
+
+```sh
+mkdir -p /path/to/artifacts
+podman unshare ./deploy /path/to/rootfs /path/to/artifacts
+```
+
+也可以在构建容器中设置 `SQUASHFS=true`，直接输出镜像。
+然后导出 artifacts 目录，使用下面带 `squashfs=root.sfs` 的 QEMU 命令。
+直接 NFS 启动 rootfs 仅适用于磁盘上的 UID/GID 已与目标系统一致的构建产物。
+
 1. 安装 NFS Server（`nfs-kernel-server`）
 2. 配置 `/etc/exports` 如下：
 

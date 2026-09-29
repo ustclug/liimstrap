@@ -13,7 +13,7 @@ unset DISPLAY WAYLAND_DISPLAY
 
 cleanup() {
   trap - EXIT
-  if read -r idle_pid < "$XDG_RUNTIME_DIR/liims-idle.pid" 2>/dev/null; then
+  if read -r idle_pid 2>/dev/null < "$XDG_RUNTIME_DIR/liims-idle.pid"; then
     if [[ "$idle_pid" =~ ^[0-9]+$ && $(readlink "/proc/$idle_pid/exe") = /usr/bin/swayidle ]]; then
       kill "$idle_pid" 2>/dev/null || true
     fi

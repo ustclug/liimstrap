@@ -24,7 +24,9 @@ find_session() {
         Seat) seat=$value ;;
       esac
     done <<< "$properties"
-    if [[ "$name" = "$LIIMSUSER" && "$service" = greetd && "$remote" = no && "$seat" = seat0 ]]; then
+    # greetd uses greetd-greeter for default_session (our desktop autologin).
+    if [[ "$name" = "$LIIMSUSER" && "$remote" = no && "$seat" = seat0 &&
+          ( "$service" = greetd || "$service" = greetd-greeter ) ]]; then
       [[ -z "$found" ]] || return 1
       found=$candidate
     fi

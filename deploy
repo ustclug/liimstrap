@@ -11,6 +11,14 @@ if [[ ! -d "$ROOT" || ! -d "$DEST" ]]; then
     exit 1
 fi
 
+# SquashFS records the numeric owners visible to the packing process.
+# A rootless container's bind-mounted rootfs has shifted IDs on the host.
+if [[ $(stat -c '%u:%g' "$ROOT") != 0:0 || $(stat -c '%u:%g' "$ROOT/etc/passwd") != 0:0 ]]; then
+    echo "Rootfs ownership is not root:root in this user namespace." >&2
+    echo "For rootless Podman builds, run deploy via podman unshare or in the build container." >&2
+    exit 1
+fi
+
 KERNEL=$(basename "$(readlink "$ROOT/vmlinuz")")
 KERNEL=${KERNEL#vmlinuz-}
 test -f "$ROOT/boot/vmlinuz-$KERNEL"
