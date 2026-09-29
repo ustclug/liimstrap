@@ -73,6 +73,7 @@ fi
 # External package: URL and hash must be changed together.
 LIIMS_BROWSER_URL="${LIIMS_BROWSER_URL:-https://github.com/ustclug/liims-browser/releases/download/v0.1.0/liims-browser_0.1.0-1_amd64.deb}"
 LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-53ad64205589cad1abcea2498df711e937ffbd9f3bc22d4ecac4d9f55f540efb}"
+GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
 # debootstrap
 debootstrap --arch=amd64 trixie "$ROOT" "$APT_SOURCE/debian"
@@ -106,11 +107,11 @@ run apt-get update
 # install packages
 install_package labwc greetd waybar foot swayidle grim luit \
   libgl1-mesa-dri libegl-mesa0 dbus-user-session libpam-systemd \
-  busybox dhcpcd dnsutils htop inetutils-ftp iputils-ping \
+  busybox dhcpcd-base dnsutils htop inetutils-ftp iputils-ping \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools mtr-tiny ndisc6 nyancat \
   procps rsync sed ssh tar usbutils vim \
-  adwaita-icon-theme gnome-themes-extra \
+  adwaita-icon-theme librsvg2-common gnome-themes-extra \
   fonts-arphic-uming fonts-noto-cjk fonts-dejavu-core \
   fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 fcitx5-chinese-addons \
   bash-completion curl ca-certificates jq systemd-timesyncd locales net-tools zstd
@@ -125,6 +126,12 @@ install_package /tmp/liims-browser.deb
 run liims-browser --check-config --profile default
 run liims-browser --check-config --profile iat
 
+# Transparent HTTP and TLS proxy from master.
+curl --fail --location --retry 3 --output "$ROOT/tmp/gost.tar.gz" "$GOST_URL"
+check_sha256 "$ROOT/tmp/gost.tar.gz" "676fb7f78d267b6ae73df719c0c7f2b565dde7147da935cfafbc1e1da558b6d5"
+tar -xzf "$ROOT/tmp/gost.tar.gz" -C "$ROOT/usr/local/bin" gost
+chmod 755 "$ROOT/usr/local/bin/gost"
+
 # Assistant scripts
 for script in "$BASE"/bin/*.sh; do
   install -Dm755 "$script" "$ROOT/usr/local/bin/$(basename "$script")"
@@ -134,9 +141,6 @@ done
 add_file /etc/ssh/
 printf "root:%s\n" "$ROOT_PASSWORD" | run chpasswd
 run systemctl enable ssh
-
-# dhcpcd
-run systemctl enable dhcpcd
 
 # time and NTP
 TZ=Asia/Shanghai
@@ -152,10 +156,11 @@ run locale-gen
 # iptables
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
+add_file /etc/gost/
 
 # cron jobs
 add_file /etc/systemd/system/
-run systemctl enable liims-reset.timer reboot.timer
+run systemctl enable liims-gost.service liims-reset.timer reboot.timer
 
 # Wayland login
 add_file /etc/greetd/
@@ -186,6 +191,9 @@ echo "$VERSION" > "$ROOT/etc/liims_version"
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
+install -Dm755 "$BASE/initramfs-tools/hooks/http-root" "$ROOT/etc/initramfs-tools/hooks/http-root"
+install -Dm755 "$BASE/initramfs-tools/scripts/http" "$ROOT/etc/initramfs-tools/scripts/http"
+install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/networkd.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/networkd.sh"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
@@ -206,7 +214,7 @@ run localepurge
 rm -rf "$ROOT/usr/share/doc/"*
 
 # networking/miscellaneous
-add_file /etc/hosts /etc/resolv.conf
+add_file /etc/hosts
 
 # cleanup
 run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel

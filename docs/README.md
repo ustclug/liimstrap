@@ -3,9 +3,16 @@
 ## 启动与桌面
 
 Debian 13 amd64，PXE/GRUB 下载 `vmlinuz` 和 `initrd.img`，通过现有
-`boot=nfs`、`nfsroot`、`squashfs` 参数加载根文件系统。
+`boot=nfs`、`nfsroot`、`squashfs` 参数加载根文件系统，也支持
+`boot=http root_sfs=http://.../root.sfs` 从 HTTP 下载压缩镜像到内存。
 initramfs 将只读根挂到 `/ro`，内存中的可写层挂到 `/rw`，合并为 overlay 根目录。
 `deploy` 输出内核、initrd、SquashFS 和 SHA256SUMS；这些文件应作为一组部署。
+HTTP 启动时内存需要同时容纳压缩镜像和运行中的系统；NFS 启动可以直接使用
+NFS 根目录，或挂载其中的 SquashFS，内存充足时将 SquashFS 复制到 tmpfs。
+
+initramfs 从启动阶段的网络配置生成 `/run/systemd/network/05-liims-boot.network`。
+真实系统由 `systemd-networkd` 接管网卡，`systemd-resolved` 提供 DNS，
+`/etc/resolv.conf` 指向它的本地 `127.0.0.53` 解析器。
 
 `greetd` 在 tty7 以 `liims` 用户运行 `liims-session.sh`，每次会话退出都会重新启动。
 labwc 创建 Wayland socket 后，`liims-session-ready.sh` 导入实际会话环境，启动
@@ -40,6 +47,22 @@ BBS 的终端、转换器、网络进程和空闲监测属于同一 systemd 控�
 彩虹猫使用独立用户服务；重复点击不会创建多个实例。
 foot 使用独立窗口，镜像禁用并屏蔽包默认启用的 foot-server service/socket。
 
+## 网络访问限制
+
+网络访问限制仅作用于 UID 1000（`liims`）。iptables 的 OUTPUT NAT 将其 TCP
+80、3000（心跳）及 443 端口重定向到本机 GOST 的 3128 端口；filter 表只允许这些本机端口、
+本机 `127.0.0.53` DNS，以及 BBS 的 Telnet 端口（固定 IP 202.38.64.3）。上游 DNS 查询由
+`systemd-resolved` 发出，不受 UID 1000 的规则限制。
+
+GOST 使用 SNI handler 检查 HTTP Host 或 HTTPS ClientHello 中的 SNI，
+只有命中 `/etc/gost/bypass.txt` 的域名才会转发；它不终止 TLS，
+浏览器仍直接验证目标站点的证书。`/etc/gost/hosts.txt` 包含特殊域名映射。
+修改这两个文件后需重启 `liims-gost.service`。
+没有 SNI 的 HTTPS 连接会被拒绝；ECH 的外层 SNI 不能证明真实目标域名，
+若浏览器将来启用 ECH，需要更新策略。HTTP/3（UDP/443）会被 filter 表拒绝。
+
+greetd 在 `netfilter-persistent`、GOST、networkd 和 resolved 启动后才启动桌面。
+
 ## 两层清理
 
 浏览器无操作 45 秒提示、60 秒清理临时网络会话；“结束使用”也可主动清理。
@@ -58,7 +81,7 @@ logind IdleHint。检测失败或会话变化时取消本轮重置；持续有�
 
 ## 维护与验证
 
-heartbeat 的 HTTP 接口及周期不变，网络访问限制继续使用 hosts 和 iptables。
+heartbeat 的 HTTP 接口及周期不变，网络访问限制使用 iptables 和 GOST。
 SSH 证书登录和 NTP 保留。Debian 13 官方仓库没有 netdata，本镜像不再安装它；
 终端在线状态继续由 heartbeat 上报。不要在排障时关闭 WebKit sandbox。
 
