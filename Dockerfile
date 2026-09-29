@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:13
 
 ARG APT_SOURCE=http://mirrors.ustc.edu.cn
 ENV APT_SOURCE=$APT_SOURCE

@@ -1,5 +1,10 @@
 insmod all_video
 
+# Download root.sfs over HTTP into RAM and mount it as the root filesystem.
+linux (http,202.38.93.94)/boot/bin/liims/liims2_unstable/vmlinuz vga=871 ip=:::::eth0:dhcp boot=http root_sfs=http://202.38.93.94/boot/bin/liims/liims2_unstable/root.sfs version=liims2_unstable
+initrd (http,202.38.93.94)/boot/bin/liims/liims2_unstable/initrd.img
+boot
+
 # Example: Use NFS and squashfs as root
 linux (http,202.38.93.94)/boot/bin/liims/liims2_unstable/vmlinuz vga=871 nfsroot=202.38.93.94:/nfsroot/liims/liims2_unstable ip=:::::eth0:dhcp boot=nfs squashfs=root.sfs version=liims2_unstable
 initrd (http,202.38.93.94)/boot/bin/liims/liims2_unstable/initrd.img

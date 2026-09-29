@@ -1,0 +1,29 @@
+services:
+  - name: liims-sni-ipv4
+    addr: "127.0.0.1:3128"
+    bypass: liims-hosts
+    hosts: liims-hosts
+    handler:
+      type: sni
+    listener:
+      type: tcp
+
+  - name: liims-sni-ipv6
+    addr: "[::1]:3128"
+    bypass: liims-hosts
+    hosts: liims-hosts
+    handler:
+      type: sni
+    listener:
+      type: tcp
+
+bypasses:
+  - name: liims-hosts
+    whitelist: true
+    file:
+      path: /etc/gost/bypass.txt
+
+hosts:
+  - name: liims-hosts
+    file:
+      path: /etc/gost/hosts.txt

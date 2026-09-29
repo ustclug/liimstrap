@@ -1,0 +1,24 @@
+#!/bin/sh
+
+mountroot()
+{
+    root_sfs=
+    for arg in $(cat /proc/cmdline); do
+        case "$arg" in
+            root_sfs=*) root_sfs=${arg#root_sfs=} ;;
+        esac
+    done
+
+    case "$root_sfs" in
+        http://*) ;;
+        *) panic "Set root_sfs to an HTTP URL" ;;
+    esac
+
+    /sbin/modprobe af_packet
+    wait_for_udev 10
+    configure_networking
+
+    mount -t tmpfs -o size=80% tmpfs "$rootmnt" || panic "Cannot mount RAM for root.sfs"
+    curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+        --connect-timeout 10 --output "$rootmnt/root.sfs" "$root_sfs" || panic "Cannot download root.sfs"
+}

@@ -47,20 +47,27 @@ fi
 # External packages
 MIDORI_URL="${MIDORI_URL:-https://github.com/taoky/midori/releases/download/20250808/midori-liims_9.0-1_amd64.deb}"
 SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
+GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
+# mount base fs
+mount -t tmpfs --mkdir none "$ROOT/dev"
+chmod 755 "$ROOT/dev"
+touch "$ROOT/dev/null"
+mount --bind /dev/null "$ROOT/dev/null"
+touch "$ROOT/dev/random"
+mount --bind /dev/random "$ROOT/dev/random"
+touch "$ROOT/dev/urandom"
+mount --bind /dev/urandom "$ROOT/dev/urandom"
+touch "$ROOT/dev/zero"
+mount --bind /dev/zero "$ROOT/dev/zero"
 # debootstrap
 debootstrap bookworm "$ROOT" "$APT_SOURCE/debian"
-mount -t tmpfs none "$ROOT/dev"
-chmod 755 "$ROOT/dev"
-mknod -m0666 "$ROOT/dev/null" c 1 3
-mknod -m0666 "$ROOT/dev/random" c 1 8
-mknod -m0666 "$ROOT/dev/urandom" c 1 9
-mknod -m0666 "$ROOT/dev/zero" c 1 5
 ln -sf /proc/self/fd/0 "$DST/dev/stdin"
 ln -sf /proc/self/fd/1 "$DST/dev/stdout"
 ln -sf /proc/self/fd/2 "$DST/dev/stderr"
 ln -sf /proc/self/fd "$ROOT/dev/"
 mkdir -p "$ROOT/dev/pts"
+# bind mount utility fs
 mount -t devpts none "$ROOT/dev/pts"
 mount -t proc proc "$ROOT/proc"
 mount -t tmpfs none "$ROOT/run"
@@ -75,7 +82,7 @@ run apt-get update
 # install packages
 install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
   xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
-  busybox dhcpcd5 dnsutils htop inetutils-ftp iputils-ping \
+  busybox dhcpcd-base dnsutils htop inetutils-ftp iputils-ping \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
   procps rsync scrot sed ssh tar usbutils vim \
@@ -101,6 +108,13 @@ wget --progress=dot:giga -O "$ROOT/tmp/sogoupinyin.deb" "$SOGOUPINYIN_URL"
 check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
 install_package /tmp/sogoupinyin.deb libasound2 libgomp1  # missing deps in sogoupinyin
 
+# Install GOST, pinned to a release that supports hostname whitelisting on
+# transparently redirected connections.
+wget --progress=dot:giga -O "$ROOT/tmp/gost.tar.gz" "$GOST_URL"
+check_sha256 "$ROOT/tmp/gost.tar.gz" "676fb7f78d267b6ae73df719c0c7f2b565dde7147da935cfafbc1e1da558b6d5"
+tar -xzf "$ROOT/tmp/gost.tar.gz" -C "$ROOT/usr/local/bin" gost
+chmod 755 "$ROOT/usr/local/bin/gost"
+
 # Assistant scripts and programs
 echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
 for script in "$BASE"/bin/*.sh; do
@@ -114,9 +128,6 @@ cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXss
 add_file /etc/ssh/
 printf "root:%s\n" "$ROOT_PASSWORD" | run chpasswd
 run systemctl enable ssh
-
-# dhcpcd
-run systemctl enable dhcpcd
 
 # time and NTP
 TZ=Asia/Shanghai
@@ -133,9 +144,13 @@ run locale-gen
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
 
+# Transparent browser proxy. All listeners are bound to loopback in the
+# dedicated GOST configuration.
+add_file /etc/gost/
+
 # cron jobs
 add_file /etc/systemd/system/
-run systemctl enable liims-reset.timer reboot.timer
+run systemctl enable liims-gost.service liims-reset.timer reboot.timer
 
 # slim
 add_file /etc/slim.conf
@@ -170,6 +185,9 @@ echo "$VERSION" > "$ROOT/etc/liims_version"
 # kernel
 install -Dm644 "$BASE/initramfs-tools/initramfs.conf" "$ROOT/etc/initramfs-tools/initramfs.conf"
 install -Dm644 "$BASE/initramfs-tools/modules" "$ROOT/etc/initramfs-tools/modules"
+install -Dm755 "$BASE/initramfs-tools/hooks/http-root" "$ROOT/etc/initramfs-tools/hooks/http-root"
+install -Dm755 "$BASE/initramfs-tools/scripts/http" "$ROOT/etc/initramfs-tools/scripts/http"
+install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/networkd.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/networkd.sh"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
 install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek r8168-dkms
 
@@ -184,16 +202,21 @@ set +e
 rm -rf "$ROOT/usr/share/doc/"*
 
 # networking/miscellaneous
-add_file /etc/hosts /etc/resolv.conf /etc/apt/sources.list
+add_file /etc/hosts /etc/apt/sources.list
 
 # cleanup
 run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
+set -e
+install_package systemd-resolved
+# The initramfs uses dhcpcd for the boot lease. networkd takes over in the
+# real system using the interface configuration written by networkd.sh.
+run systemctl enable systemd-networkd.service systemd-resolved.service
 run apt-get clean
+ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOT/etc/resolv.conf"
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 
-umount "$ROOT/dev/pts"
-umount "$ROOT/dev"
+umount -R "$ROOT/dev"
 umount "$ROOT/proc"
 umount "$ROOT/run"
 umount "$ROOT/sys"
