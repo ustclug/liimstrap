@@ -1,0 +1,5 @@
+[Hotkey/TriggerKeys]
+0=Control+space
+
+[Behavior]
+ActiveByDefault=False

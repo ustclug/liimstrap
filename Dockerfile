@@ -7,7 +7,6 @@ RUN sed -Ei "s,https?://(deb|security)\.debian\.org,$APT_SOURCE,g" /etc/apt/sour
     apt-get update && \
     apt-get -y upgrade && \
     apt-get install --no-install-recommends --yes \
-        gcc libc6-dev libx11-dev libxss-dev \
         curl ca-certificates debootstrap rsync squashfs-tools && \
     apt-get clean
 

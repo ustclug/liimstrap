@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 shopt -s extglob
 
 ROOT="$1"
@@ -10,7 +11,9 @@ if [[ ! -d "$ROOT" || ! -d "$DEST" ]]; then
     exit 1
 fi
 
-KERNEL=$(ls "$ROOT"/boot | grep -m1 -Po "^vmlinuz-\K\S+")
+KERNEL=$(basename "$(readlink "$ROOT/vmlinuz")")
+KERNEL=${KERNEL#vmlinuz-}
+test -f "$ROOT/boot/vmlinuz-$KERNEL"
 
 mkdir -p "$DEST"
 cp "$ROOT/boot/vmlinuz-$KERNEL" "$DEST/vmlinuz"
@@ -22,3 +25,5 @@ mksquashfs "$ROOT"/ "$DEST"/root.sfs -comp zstd -Xcompression-level 14 -b 128k \
     -e 'usr/share/gtk-docs/' \
     -e 'usr/share/doc/' \
     -e 'usr/share/man/'
+
+(cd "$DEST" && sha256sum vmlinuz initrd.img root.sfs > SHA256SUMS)

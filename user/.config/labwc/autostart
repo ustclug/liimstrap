@@ -1,0 +1,2 @@
+#!/bin/sh
+# Session services are started by labwc --session, not a second autostart.

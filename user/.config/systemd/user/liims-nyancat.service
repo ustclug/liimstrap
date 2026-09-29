@@ -1,0 +1,10 @@
+[Unit]
+Description=LIIMS rainbow cat
+PartOf=graphical-session.target
+Requisite=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/foot --fullscreen --app-id=liims-nyancat -e nyancat -f 100
+KillMode=control-group
+TimeoutStopSec=5

@@ -1,0 +1,7 @@
+[terminal]
+vt = 7
+
+# Run on every session exit, not just once per boot.
+[default_session]
+user = "liims"
+command = "/usr/local/bin/liims-session.sh"

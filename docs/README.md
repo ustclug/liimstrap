@@ -1,80 +1,89 @@
-# LIIMS image 内容介绍
+# LIIMS 镜像
 
-本 LIIMS 版本基于 Debian，下面将对其构建内容做一个简单的技术介绍。
+## 启动与桌面
 
-## 查询机启动时发生了什么？
+Debian 13 amd64，PXE/GRUB 下载 `vmlinuz` 和 `initrd.img`，通过现有
+`boot=nfs`、`nfsroot`、`squashfs` 参数加载根文件系统。
+initramfs 将只读根挂到 `/ro`，内存中的可写层挂到 `/rw`，合并为 overlay 根目录。
+`deploy` 输出内核、initrd、SquashFS 和 SHA256SUMS；这些文件应作为一组部署。
 
-查询机启动时，首先 PXE 启动，PXE 服务器会为查询机提供 GRUB 程序。GRUB 配置中包含根据 MAC 地址分配不同设置的配置，如果查询机的 MAC 地址符合，则加载对应的配置项，直接启动 Linux。配置项文件内容大致与 grub.example 相似。
+`greetd` 在 tty7 以 `liims` 用户运行 `liims-session.sh`，每次会话退出都会重新启动。
+labwc 创建 Wayland socket 后，`liims-session-ready.sh` 导入实际会话环境，启动
+`liims-session.target`。它关联 systemd 的 `graphical-session.target`，共同管理
+浏览器、Waybar、Fcitx 5 和 heartbeat timer。退出桌面时停止整组服务。
+空闲监测作为 labwc 的 session client，退出时也会结束 compositor，由 greetd 重建会话。
+用户 D-Bus 和运行目录由 PAM/systemd 建立，不另开独立总线，也不启用 lingering。
 
-GRUB 会下载 initrd 和 vmlinuz，然后将控制权转交给它们。Initrd 会根据启动参数进行必须的配置（加载 rootfs），之后正常启动系统。
+不启动 Xorg，不自动锁屏或关闭显示器。Debian 的 labwc 包硬依赖 XWayland；
+保留该包，但配置为按需启动且不向图形用户服务导出 DISPLAY，所有桌面应用使用原生 Wayland。目标设备必须具备可用的 DRM/KMS 驱动。
+浏览器最大化并给底部面板留出空间；Win+Tab 切换窗口，Ctrl+Alt+T 打开要求 root
+密码的维护终端，Print 用 grim 截图。未配置通用应用启动器或退出桌面的快捷键。
 
-启动参数中的 `boot=http` 会选择自定义 initramfs 脚本。它根据 `ip` 参数配置网络，从 `root_sfs` 指定的 HTTP 地址下载 `root.sfs` 到内存中的 tmpfs。随后 `scripts/init-bottom/overlay.sh` 将其挂载为 squashfs，并加上可写的 overlay。启动时内存需要足够容纳压缩镜像和运行中的系统。
+## 浏览器、面板与输入法
 
-`boot=nfs` 方式指定 NFS 启动：Debian 的 initramfs-tools 根据 `nfsroot` 和 `ip` 参数挂载 NFS 到 `$rootmnt`。随后 overlay 脚本可以直接使用 NFS 根目录，或挂载其中由 `squashfs` 指定的镜像；内存充足时会将镜像复制到 tmpfs。
+浏览器来自固定版本的上游 deb，安装时由 APT 解析 GTK4、libadwaita 和 WebKitGTK 6
+运行依赖。镜像不包含 Rust 构建工具链。URL 与 SHA-256 必须一起更新。
 
-initramfs 在 `/run/net-<接口>.conf` 中记录启动网卡的 DHCP 或静态配置，并在切换到真实系统前生成对应的 `/run/systemd/network/05-liims-boot.network`。真实系统由 `systemd-networkd` 管理该网卡，保留启动阶段已有的地址和路由；`systemd-resolved` 从网卡配置获得 DNS，`/etc/resolv.conf` 指向它的本地 `127.0.0.53` 解析器。
+`/etc/liims/browser.toml` 由浏览器包提供；内核参数 `profile=iat` 选择先研院配置，
+不再运行脚本改写配置。浏览器内置首页代替旧 HTML 首页，历史 `homepage/` 文件不参与镜像构建。
+配置检查：
 
-此外，启动参数可以被程序从 `/proc/cmdline` 读取，自定义程序也会使用。
+```sh
+liims-browser --check-config --profile default
+liims-browser --check-config --profile iat
+```
 
-## 查询机辅助脚本工具（`bin`）
+Waybar 保留 BBS、彩虹猫、浏览器重启、英语/拼音/五笔切换和时钟。
+五笔使用 Debian 自带的 `wbx` 引擎。Fcitx 5 的触发键是 Ctrl+Space；GTK 使用 Fcitx 模块，foot 使用 Wayland 输入法协议。
+BBS 通过 foot + luit 将 UTF-8 终端与 GBK telnet 服务相连，全桌面空闲 60 秒后关闭。
+BBS 的终端、转换器、网络进程和空闲监测属于同一 systemd 控制组，退出时一起清理。
+彩虹猫使用独立用户服务；重复点击不会创建多个实例。
+foot 使用独立窗口，镜像禁用并屏蔽包默认启用的 foot-server service/socket。
 
-`bin` 目录下放置了一些小程序：
+## 两层清理
 
-- `xidle.c`：根据 X 的屏保接口判断系统闲置时间并输出（需要 xauth）
-- `reset.sh`：重置系统 /home 目录内容，重启图形界面；目前在 `etc/root.crontab` 里面配置了每半小时执行一次，执行时循环使用 xidle 判断闲置时间，如果大于 30000 毫秒，则启动重置逻辑
-- `heartbeat.sh`：向 pxe.ustc.edu.cn:3000 发送心跳包，由 systemd user timer 执行
-- `chameleon.sh`：如果 `/proc/cmdline` 设置了 profile，则根据 profile 的值修改 midori 配置，用于先研院查询机（需要不同的配置）
-- `bbsclient.sh`：基于 xterm 的简单 BBS 客户端，闲置 60000 毫秒后会关闭
+浏览器无操作 45 秒提示、60 秒清理临时网络会话；“结束使用”也可主动清理。
+清理本机浏览状态不等于注销网站服务器上的会话。
 
-## 网络访问限制
+整机 timer 保持每小时 `:30` 触发、随机延迟最多 10 分钟，并等待全桌面空闲 90 秒。
+`swayidle idlehint 90` 直接运行在 greetd 登录会话内。
+root 重置脚本确认唯一的本地 greetd 会话、监测进程的 UID/可执行文件/会话控制组和
+logind IdleHint。检测失败或会话变化时取消本轮重置；持续有人使用时最多等待 50 分钟。
 
-网络访问限制仅作用于 UID 1000 (`liims`)。iptables 的 OUTPUT NAT 将其 TCP
-80、3000（心跳）及 443 端口重定向到本机 GOST 的 3128 端口；filter 表只允许这些本机端口、
-本机 `127.0.0.53` DNS，以及 BBS 的 Telnet 端口（仍限于固定 IP 202.38.64.3）。上游 DNS 查询由 `systemd-resolved` 发出，不受 UID 1000 的规则限制。GOST 对 HTTP 检查 Host，对 HTTPS 读取
-ClientHello 中的 SNI，命中 `/etc/gost/bypass.txt` 才会转发。GOST 只嗅探连接目标，
-不终止 TLS，浏览器仍直接验证目标站点的证书。
-GOST 使用 SNI handler 从请求中提取 HTTP Host 或 TLS SNI，再按主机名转发，
-不依赖连接的原始目标地址。
+重置先停止 greetd，再终止 liims 用户进程及用户管理器，确认没有残留后，使用
+`rsync -a --delete` 从 `/ro/home/liims/` 恢复家目录，最后重启 greetd。
+恢复失败时保持桌面停止，避免启动不完整配置；SSH 仍可维护。
+重置是 root 系统服务，面板上的“重置浏览器”只重启浏览器用户服务。
+每周六重启的 timer 保持不变。
 
-允许的站点通常从 DNS 获取地址；`/etc/gost/hosts.txt` 保存有意的域名映射，
-包括把若干域名送往 DMZ SNI 代理，同时保留浏览器请求中的原域名和 SNI。
-修改 `/etc/gost/bypass.txt` 或 `/etc/gost/hosts.txt` 后需重启
-`liims-gost.service`。
+## 维护与验证
 
-透明 TLS 代理依赖明文 SNI；没有 SNI 的连接会被拒绝。ECH 的外层 SNI 不能
-证明真实目标域名，若浏览器将来启用 ECH，需要另行禁用 ECH 或更新策略。
-HTTP/3 (UDP/443) 不在重定向范围内，会被 filter 表拒绝。
+heartbeat 的 HTTP 接口及周期不变，网络访问限制继续使用 hosts 和 iptables。
+SSH 证书登录和 NTP 保留。Debian 13 官方仓库没有 netdata，本镜像不再安装它；
+终端在线状态继续由 heartbeat 上报。不要在排障时关闭 WebKit sandbox。
 
-## SSH
+在 liims 登录会话中可检查：
 
-可以使用 LUG 证书登录。
+```sh
+systemctl --user status liims-session.target liims-browser waybar fcitx5
+journalctl --user -u liims-browser -u waybar -u fcitx5
+```
 
-## netdata
+root 维护入口：
 
-netdata 放在 8000 端口上，可以查看查询机系统状态。因为 netdata 有用户权限限制，基本可以认为是安全的，未来如有必要，可以加上访问 IP 限制。
+```sh
+journalctl -u greetd -u liims-reset
+loginctl list-sessions
+systemctl start liims-reset.service
+```
 
-## Midori 配置
+最后一个命令会等待空闲并恢复用户目录。手动恢复失败的桌面前，应先检查错误并确认
+`/home/liims` 已完整恢复，再执行 `systemctl start greetd`。
 
-Midori 上游已经不再维护，因为有一些 feature（例如自动重置）不太容易用别的浏览器实现，目前使用魔改版的 midori：<https://github.com/taoky/midori>。Vala 语法类似于 C#，改起来不算难。
+仓库检查运行 `tests/check.sh`。发布前还需完整构建，并用 QEMU virtio 显卡及代表性
+真机验证启动、两个校区、中文输入、BBS、浏览会话清理、整机重置和崩溃恢复。
+GUI 自动化若需独立 D-Bus，使用 `~/.local/bin/dbus-run-isolated -- <command>`；
+wrapper 或 bwrap 失败时停止，不得直接运行未隔离的独立 D-Bus 会话。
 
-主要的配置有三处：
-
-- `~/.config/midori/config`: 主配置，包括主页、搜索方式、启用扩展等
-- `~/.local/share/midori/extensions`: 扩展，可以在页面上加 CSS/JS；格式和其他的不那么兼容，需要手写。目前启用了两个扩展：
-    - liims：提醒用户可以用 Ctrl + Space 切换输入法（midori 的 `alert()` UI 很优雅，不是直接弹框，而是只在 URL 框下面提示）
-    - cssfix：修复 Debian 11 中 libwebkit2gtk 中文伪粗体很丑的 bug
-- `~/.config/openbox/rc.xml`: OpenBox 窗口管理器配置，包含了让 Midori 没有窗口边框且最大化的配置
-
-理论上后端引擎 WebKit 不是很老，所以大部分普通的网页应该不会有特别离谱的兼容性问题。
-
-## fcitx 输入法
-
-Panel 上的按钮实际上调用的是 `fcitx-remote` 程序（可以在 `~/.config/fbpanel/default` 看到），大部分时候应该是能用的，虽然 Linux 上配置输入法确实有点玄学。
-
-搜狗输入法是商业软件，软件源里没有，所以需要自己配置，所幸目前的版本的 deb 安装之后再补上缺的两个依赖 `libasound2 libgomp1` 就能用，不再像之前的版本需要自己把 `sogou-qimpanel` 开出来。
-
-## Systemd user service
-
-在通过终端（Ctrl + Alt + T）进入 root shell 之后，如果需要调试 systemd user service，直接 `su liims` 即可。
-
-所有的 user service 都是在 `~/.xinitrc` 里面启动的。此外 enabled timer 需要软链接，否则新版本的 systemd 不认账。
+新镜像先按 MAC 分配给少量终端。保留旧镜像完整目录，回滚时将 GRUB 配置切回旧目录，
+不要混用两个版本的内核、initrd 和 root.sfs。
