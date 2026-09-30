@@ -71,8 +71,8 @@ else
 fi
 
 # External package: URL and hash must be changed together.
-LIIMS_BROWSER_URL="${LIIMS_BROWSER_URL:-https://github.com/ustclug/liims-browser/releases/download/v0.1.0/liims-browser_0.1.0-1_amd64.deb}"
-LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-53ad64205589cad1abcea2498df711e937ffbd9f3bc22d4ecac4d9f55f540efb}"
+LIIMS_BROWSER_URL="${LIIMS_BROWSER_URL:-https://github.com/ustclug/liims-browser/releases/download/0.1.0-2/liims-browser_0.1.0-2_amd64.deb}"
+LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-sha256:1a6f4c989ea7e4918b059975389074701d40ddc186e5e3438f7edde2796f13f4}"
 GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
 # debootstrap
@@ -111,7 +111,6 @@ install_package labwc greetd waybar foot swayidle grim luit \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
   initramfs-tools mtr-tiny ndisc6 nyancat \
   procps rsync sed ssh tar usbutils vim \
-  adwaita-icon-theme librsvg2-common gnome-themes-extra \
   fonts-arphic-uming fonts-noto-cjk fonts-dejavu-core \
   fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 fcitx5-chinese-addons \
   bash-completion curl ca-certificates jq systemd-timesyncd locales net-tools zstd
