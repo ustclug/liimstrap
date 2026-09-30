@@ -72,7 +72,7 @@ fi
 
 # External package: URL and hash must be changed together.
 LIIMS_BROWSER_URL="${LIIMS_BROWSER_URL:-https://github.com/ustclug/liims-browser/releases/download/0.1.0-2/liims-browser_0.1.0-2_amd64.deb}"
-LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-sha256:1a6f4c989ea7e4918b059975389074701d40ddc186e5e3438f7edde2796f13f4}"
+LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-1a6f4c989ea7e4918b059975389074701d40ddc186e5e3438f7edde2796f13f4}"
 GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
 # debootstrap
