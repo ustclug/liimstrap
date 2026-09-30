@@ -5,9 +5,9 @@ set -e
 unset DISPLAY
 systemctl --user unset-environment DISPLAY
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_SESSION_TYPE \
-  XDG_CURRENT_DESKTOP LANG LC_ALL GTK_IM_MODULE
+  XDG_CURRENT_DESKTOP LANG LC_ALL
 systemctl --user import-environment WAYLAND_DISPLAY XDG_SESSION_TYPE \
-  XDG_CURRENT_DESKTOP XDG_SESSION_ID LANG LC_ALL GTK_IM_MODULE
+  XDG_CURRENT_DESKTOP XDG_SESSION_ID LANG LC_ALL
 systemctl --user reset-failed
 systemctl --user start liims-session.target
 

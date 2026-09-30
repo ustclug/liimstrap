@@ -6,7 +6,6 @@ set -e
 export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
 export XDG_SESSION_TYPE=wayland XDG_CURRENT_DESKTOP=labwc
 export LANG=zh_CN.UTF-8 LC_ALL=zh_CN.UTF-8
-export GTK_IM_MODULE=fcitx
 # Manage activation ourselves; never export labwc's optional X11 display.
 export LABWC_UPDATE_ACTIVATION_ENV=0
 unset DISPLAY WAYLAND_DISPLAY
