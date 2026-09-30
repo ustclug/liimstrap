@@ -12,26 +12,25 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Check scripts and reset behavior
+      run: tests/check.sh
+
     - name: Build Docker image
       run: |
         docker build \
           --build-arg APT_SOURCE=http://deb.debian.org \
-          -t ustclug/liimstrap:liims-2 .
+          -t ustclug/liimstrap:liims-3 .
 
     - name: Build liimstrap image
       env:
         ROOT_PASSWORD: ${{ secrets.LIIMSTRAP_ROOT_PASSWORD }}
-        MIDORI_URL: ${{ secrets.MIDORI_URL }}
-        SOGOUPINYIN_URL: ${{ secrets.SOGOUPINYIN_URL }}
       run: |
         docker run --privileged --rm \
           -v /srv/dest:/srv/dest \
           -e GITHUB_RUN_NUMBER \
           -e ROOT_PASSWORD \
-          -e MIDORI_URL \
-          -e SOGOUPINYIN_URL \
           -e SQUASHFS=true \
-          ustclug/liimstrap:liims-2
+          ustclug/liimstrap:liims-3
 
     - name: Generate release information
       id: release-info
@@ -46,3 +45,4 @@ jobs:
           /srv/dest/vmlinuz
           /srv/dest/initrd.img
           /srv/dest/root.sfs
+          /srv/dest/SHA256SUMS

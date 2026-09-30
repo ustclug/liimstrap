@@ -1,7 +1,8 @@
 [Unit]
 Description=LIIMS heartbeat
-Requires=fcitx.service midori.service
-After=fcitx.service midori.service
+PartOf=graphical-session.target
+Requisite=graphical-session.target
+After=liims-browser.service fcitx5.service
 
 [Service]
 Type=oneshot

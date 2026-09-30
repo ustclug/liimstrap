@@ -2,13 +2,39 @@
 
 set -e
 
-BASE="$(dirname "$0")"
+BASE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$1"
 LIIMSUSER="liims"
+APT_SOURCE="${APT_SOURCE:-http://mirrors.ustc.edu.cn}"
 
 if [ ! -d "$ROOT" ]; then
   exit 1
 fi
+ROOT="$(realpath "$ROOT")"
+if [[ "$ROOT" = / || -e "$ROOT/etc/os-release" ]]; then
+  echo "Use an empty rootfs directory, not an existing system." >&2
+  exit 1
+fi
+
+# Track only mounts created by this build, including on failure.
+mounts=()
+cleanup() {
+  local status=$? target
+  trap - EXIT
+  for ((i=${#mounts[@]}-1; i>=0; i--)); do
+    target="${mounts[i]}"
+    umount "$target" || status=1
+  done
+  exit "$status"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+mount_root() {
+  local target="${!#}"
+  mount "$@"
+  mounts+=("$target")
+}
 
 run() {
   chroot "$ROOT" "$@"
@@ -44,35 +70,34 @@ else
   echo "Root password not specified, using \"$ROOT_PASSWORD\""
 fi
 
-# External packages
-MIDORI_URL="${MIDORI_URL:-https://github.com/taoky/midori/releases/download/20250808/midori-liims_9.0-1_amd64.deb}"
-SOGOUPINYIN_URL="${SOGOUPINYIN_URL:-http://cdn2.ime.sogou.com/dl/index/1639750479/sogoupinyin_3.4.0.9700_amd64.deb}"
+# External package: URL and hash must be changed together.
+LIIMS_BROWSER_URL="${LIIMS_BROWSER_URL:-https://github.com/ustclug/liims-browser/releases/download/0.1.0-2/liims-browser_0.1.0-2_amd64.deb}"
+LIIMS_BROWSER_SHA256="${LIIMS_BROWSER_SHA256:-1a6f4c989ea7e4918b059975389074701d40ddc186e5e3438f7edde2796f13f4}"
 GOST_URL="${GOST_URL:-https://github.com/go-gost/gost/releases/download/v3.3.0/gost_3.3.0_linux_amd64.tar.gz}"
 
-# mount base fs
-mount -t tmpfs --mkdir none "$ROOT/dev"
-chmod 755 "$ROOT/dev"
-touch "$ROOT/dev/null"
-mount --bind /dev/null "$ROOT/dev/null"
-touch "$ROOT/dev/random"
-mount --bind /dev/random "$ROOT/dev/random"
-touch "$ROOT/dev/urandom"
-mount --bind /dev/urandom "$ROOT/dev/urandom"
-touch "$ROOT/dev/zero"
-mount --bind /dev/zero "$ROOT/dev/zero"
 # debootstrap
-debootstrap bookworm "$ROOT" "$APT_SOURCE/debian"
-ln -sf /proc/self/fd/0 "$DST/dev/stdin"
-ln -sf /proc/self/fd/1 "$DST/dev/stdout"
-ln -sf /proc/self/fd/2 "$DST/dev/stderr"
-ln -sf /proc/self/fd "$ROOT/dev/"
+debootstrap --arch=amd64 trixie "$ROOT" "$APT_SOURCE/debian"
+mount_root -t tmpfs none "$ROOT/dev"
+chmod 755 "$ROOT/dev"
+for device in null random urandom zero; do
+  touch "$ROOT/dev/$device"
+  mount_root --bind "/dev/$device" "$ROOT/dev/$device"
+done
+ln -s /proc/self/fd/0 "$ROOT/dev/stdin"
+ln -s /proc/self/fd/1 "$ROOT/dev/stdout"
+ln -s /proc/self/fd/2 "$ROOT/dev/stderr"
+ln -s /proc/self/fd "$ROOT/dev/fd"
 mkdir -p "$ROOT/dev/pts"
-# bind mount utility fs
-mount -t devpts none "$ROOT/dev/pts"
-mount -t proc proc "$ROOT/proc"
-mount -t tmpfs none "$ROOT/run"
-mount -t sysfs sys "$ROOT/sys"
-mount -t tmpfs none "$ROOT/tmp"
+mount_root -t devpts -o newinstance,ptmxmode=0666 devpts "$ROOT/dev/pts"
+ln -s pts/ptmx "$ROOT/dev/ptmx"
+mount_root -t proc proc "$ROOT/proc"
+mount_root -t tmpfs none "$ROOT/run"
+mount_root -t sysfs sys "$ROOT/sys"
+mount_root -t tmpfs none "$ROOT/tmp"
+
+# Packages must not start daemons inside the build chroot.
+printf '#!/bin/sh\nexit 101\n' > "$ROOT/usr/sbin/policy-rc.d"
+chmod 755 "$ROOT/usr/sbin/policy-rc.d"
 
 # apt update
 add_file /etc/apt/sources.list
@@ -80,49 +105,36 @@ sed -Ei "s,https?://mirrors.ustc.edu.cn,$APT_SOURCE,g" "$ROOT/etc/apt/sources.li
 run apt-get update
 
 # install packages
-install_package xterm xserver-xorg xserver-xorg-video-vesa xserver-xorg-video-nouveau \
-  xserver-xorg-video-intel xserver-xorg-video-fbdev xcompmgr xauth \
+install_package labwc greetd waybar foot swayidle grim luit \
+  libgl1-mesa-dri libegl-mesa0 dbus-user-session libpam-systemd \
   busybox dhcpcd-base dnsutils htop inetutils-ftp iputils-ping \
   inetutils-telnet iptables-persistent iproute2 iputils-arping iputils-clockdiff \
-  initramfs-tools libpam-systemd mtr-tiny ndisc6 netdata nyancat \
-  procps rsync scrot sed ssh tar usbutils vim \
-  gnome-icon-theme gnome-themes-extra openbox slim \
-  fonts-arphic-uming fonts-droid-fallback fonts-wqy-zenhei xfonts-terminus \
-  fcitx fcitx-frontend-gtk2 fcitx-frontend-gtk3 \
-  fcitx-pinyin fcitx-table-wubi fcitx-ui-classic \
-  bash-completion curl ca-certificates jq systemd-timesyncd locales net-tools zstd \
-  x11-utils dbus-x11 xfonts-base xfonts-intl-chinese x11-xserver-utils
+  initramfs-tools mtr-tiny ndisc6 nyancat \
+  procps rsync sed ssh tar usbutils vim \
+  fonts-arphic-uming fonts-noto-cjk fonts-dejavu-core \
+  fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 fcitx5-chinese-addons \
+  bash-completion curl ca-certificates jq systemd-timesyncd locales net-tools zstd
 
-# Install fbpanel from bullseye
-wget --progress=dot:binary -O "$ROOT/tmp/fbpanel.deb" "https://mirrors.ustc.edu.cn/debian/pool/main/f/fbpanel/fbpanel_7.0-4.2_amd64.deb"
-check_sha256 "$ROOT/tmp/fbpanel.deb" "f66747585aa67090006c21508a0d5d57dd55eab053bbcc0cc100f6c2845544f0"
-install_package /tmp/fbpanel.deb
+# We use standalone foot windows, not its globally enabled socket/server.
+run systemctl --global disable foot-server.service foot-server.socket
+run systemctl --global mask foot-server.service foot-server.socket
 
-# Install customized midori
-wget --progress=dot:binary -O "$ROOT/tmp/midori.deb" "$MIDORI_URL"
-check_sha256 "$ROOT/tmp/midori.deb" "23e11e667d9debfe0f9188719eb2d14c8ba453f44a3ddcabb46cb4b6381a69f8"
-install_package /tmp/midori.deb
-# Install sogoupinyin
-# ref: https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=fcitx-sogoupinyin
-wget --progress=dot:giga -O "$ROOT/tmp/sogoupinyin.deb" "$SOGOUPINYIN_URL"
-check_sha256 "$ROOT/tmp/sogoupinyin.deb" "0a8de6e87c1402db49869754fa08dd58c448cd44f06b73b825debe7bea27d74d"
-install_package /tmp/sogoupinyin.deb libasound2 libgomp1  # missing deps in sogoupinyin
+curl --fail --location --retry 3 --output "$ROOT/tmp/liims-browser.deb" "$LIIMS_BROWSER_URL"
+check_sha256 "$ROOT/tmp/liims-browser.deb" "$LIIMS_BROWSER_SHA256"
+install_package /tmp/liims-browser.deb
+run liims-browser --check-config --profile default
+run liims-browser --check-config --profile iat
 
-# Install GOST, pinned to a release that supports hostname whitelisting on
-# transparently redirected connections.
-wget --progress=dot:giga -O "$ROOT/tmp/gost.tar.gz" "$GOST_URL"
+# Transparent HTTP and TLS proxy from master.
+curl --fail --location --retry 3 --output "$ROOT/tmp/gost.tar.gz" "$GOST_URL"
 check_sha256 "$ROOT/tmp/gost.tar.gz" "676fb7f78d267b6ae73df719c0c7f2b565dde7147da935cfafbc1e1da558b6d5"
 tar -xzf "$ROOT/tmp/gost.tar.gz" -C "$ROOT/usr/local/bin" gost
 chmod 755 "$ROOT/usr/local/bin/gost"
 
-# Assistant scripts and programs
-echo "export LIIMSUSER=$LIIMSUSER" >> "$ROOT/etc/profile.d/liims.sh"
+# Assistant scripts
 for script in "$BASE"/bin/*.sh; do
-  install -Dm 755 "$script" "$ROOT/usr/local/bin"
+  install -Dm755 "$script" "$ROOT/usr/local/bin/$(basename "$script")"
 done
-
-unset CFLAGS
-cc "$BASE/bin/xidle.c" -o "$ROOT/usr/local/bin/xidle" -O2 -s -lX11 -lXss
 
 # SSH login for root
 add_file /etc/ssh/
@@ -143,23 +155,16 @@ run locale-gen
 # iptables
 add_file /etc/iptables/
 run systemctl enable netfilter-persistent.service
-
-# Transparent browser proxy. All listeners are bound to loopback in the
-# dedicated GOST configuration.
 add_file /etc/gost/
 
 # cron jobs
 add_file /etc/systemd/system/
 run systemctl enable liims-gost.service liims-reset.timer reboot.timer
 
-# slim
-add_file /etc/slim.conf
+# Wayland login
+add_file /etc/greetd/
+run systemctl enable greetd.service
 run systemctl set-default graphical.target
-
-# netdata
-add_file /etc/netdata/
-run chown -R netdata:netdata "/usr/share/netdata/web/"
-run systemctl enable netdata
 
 # prevent systemd from changing network interface name
 run ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules
@@ -171,8 +176,8 @@ cp -r "$BASE/user/." "$ROOT/home/$LIIMSUSER"
 run chown -R "$LIIMSUSER:" "/home/$LIIMSUSER"
 cp "$BASE/user/.bashrc" "$ROOT/root/"
 
-# prevent sogou from modifying fcitx config
-chmod -R a-w "$ROOT/home/$LIIMSUSER/.config/fcitx/"
+# Each graphical session owns its services; never keep them alive after logout.
+rm -f "$ROOT/var/lib/systemd/linger/$LIIMSUSER"
 
 # hostname & version
 echo "liims" > "$ROOT/etc/hostname"
@@ -208,7 +213,7 @@ run localepurge
 rm -rf "$ROOT/usr/share/doc/"*
 
 # networking/miscellaneous
-add_file /etc/hosts /etc/apt/sources.list
+add_file /etc/hosts
 
 # cleanup
 run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
@@ -220,8 +225,4 @@ ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOT/etc/resolv.conf"
 rm -rf "$ROOT/var"/{backups,tmp}/*
 rm -rf "$ROOT"/*.old
 
-umount -R "$ROOT/dev"
-umount "$ROOT/proc"
-umount "$ROOT/run"
-umount "$ROOT/sys"
-umount "$ROOT/tmp"
+rm -f "$ROOT/usr/sbin/policy-rc.d"

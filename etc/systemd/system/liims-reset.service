@@ -1,6 +1,8 @@
 [Unit]
-Description=Reset LIIMS user
+Description=Reset LIIMS user after desktop inactivity
+ConditionPathIsDirectory=/ro/home/liims
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/liims-reset.sh
+TimeoutStartSec=50min

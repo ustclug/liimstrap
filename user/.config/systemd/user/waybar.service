@@ -1,0 +1,13 @@
+[Unit]
+Description=LIIMS panel
+PartOf=graphical-session.target
+After=graphical-session-pre.target fcitx5.service
+
+[Service]
+ExecStart=/usr/bin/waybar
+Restart=always
+RestartSec=2
+TimeoutStopSec=5
+
+[Install]
+WantedBy=graphical-session.target
