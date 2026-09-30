@@ -71,7 +71,7 @@ python3 -m http.server 8000
 另一个终端中启动 QEMU：
 
 ```sh
-qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 2g -device virtio-vga -machine accel=kvm -append "ip=dhcp boot=http root_sfs=http://10.0.2.2:8000/root.sfs"
+qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 2g -device virtio-vga-gl -display gtk,gl=on -machine accel=kvm -append "ip=dhcp boot=http root_sfs=http://10.0.2.2:8000/root.sfs"
 ```
 
 HTTP 启动会将 `root.sfs` 下载到内存；根据镜像大小调整 `-m`。
@@ -87,7 +87,7 @@ HTTP 启动会将 `root.sfs` 下载到内存；根据镜像大小调整 `-m`。
 执行 `exportfs -ra` 后，用 NFS 上的 SquashFS 启动：
 
 ```sh
-qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 2g -device virtio-vga -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
+qemu-system-x86_64 -kernel ./vmlinuz -initrd ./initrd.img -m 2g -device virtio-vga-gl -display gtk,gl=on -machine accel=kvm -append "nfsroot=10.0.2.2:/liims ip=dhcp boot=nfs squashfs=root.sfs"
 ```
 
 若 NFS 根目录本身已保存正确 UID/GID，也可以去掉 `squashfs=root.sfs` 直接启动。
