@@ -211,7 +211,7 @@ rm -rf "$ROOT/usr/share/doc/"*
 add_file /etc/hosts /etc/apt/sources.list
 
 # cleanup
-run apt purge -y --autoremove ifupdown libfuse2 localepurge nano rsyslog tasksel
+run apt purge -y --autoremove ifupdown localepurge nano tasksel
 run apt-get clean
 
 # Linking /etc/resolv.conf causing all DNS resolution fail in build container, make it after all operations requiring network
