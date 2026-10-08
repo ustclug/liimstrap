@@ -1,0 +1,4 @@
+* { font-family: "Noto Sans CJK SC", sans-serif; font-size: 16px; }
+window#waybar { background: #f5f5f5; color: #202020; }
+.modules-left > widget > *, .modules-right > widget > * { padding: 0 12px; }
+#custom-reset { color: #8a2525; }

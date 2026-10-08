@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<labwc_config>
+  <core><decoration>server</decoration><xwaylandPersistence>no</xwaylandPersistence></core>
+  <!-- Explicit bindings only: no application launcher or compositor exit binding. -->
+  <keyboard>
+    <keybind key="C-A-t"><action name="Execute" command="foot -e su -" /></keybind>
+    <keybind key="W-Tab"><action name="NextWindow" /></keybind>
+    <keybind key="Print"><action name="Execute" command="grim" /></keybind>
+  </keyboard>
+  <mouse>
+    <context name="Client">
+      <mousebind button="Left" action="Press"><action name="Focus" /><action name="Raise" /></mousebind>
+      <mousebind button="Right" action="Press"><action name="Focus" /><action name="Raise" /></mousebind>
+    </context>
+  </mouse>
+  <windowRules>
+    <windowRule identifier="cn.edu.ustc.liims.Browser" type="normal" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
+  </windowRules>
+</labwc_config>

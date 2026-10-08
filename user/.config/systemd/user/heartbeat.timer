@@ -1,11 +1,12 @@
 [Unit]
 Description=Do heartbeat periodically
+PartOf=graphical-session.target
 
 [Timer]
-OnBootSec=25
+OnActiveSec=25
 OnUnitActiveSec=25
 AccuracySec=1
 RandomizedDelaySec=5
 
 [Install]
-WantedBy=timers.target
+WantedBy=graphical-session.target

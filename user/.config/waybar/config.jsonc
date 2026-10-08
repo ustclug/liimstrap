@@ -1,0 +1,51 @@
+{
+  "layer": "top",
+  "position": "bottom",
+  "height": 32,
+  "exclusive": true,
+  "modules-left": [
+    "custom/bbs",
+    "custom/nyancat",
+    "custom/reset"
+  ],
+  "modules-right": [
+    "custom/english",
+    "custom/pinyin",
+    "custom/wubi",
+    "clock"
+  ],
+  "custom/bbs": {
+    "format": "瀚海星云",
+    "on-click": "systemctl --user start liims-bbs.service",
+    "tooltip": false
+  },
+  "custom/nyancat": {
+    "format": "彩虹猫",
+    "on-click": "systemctl --user start liims-nyancat.service",
+    "tooltip": false
+  },
+  "custom/reset": {
+    "format": "重置浏览器",
+    "on-click": "systemctl --user restart liims-browser.service",
+    "tooltip": false
+  },
+  "custom/english": {
+    "format": "英语",
+    "on-click": "fcitx5-remote -c",
+    "tooltip": false
+  },
+  "custom/pinyin": {
+    "format": "拼音",
+    "on-click": "fcitx5-remote -s pinyin && fcitx5-remote -o",
+    "tooltip": false
+  },
+  "custom/wubi": {
+    "format": "五笔",
+    "on-click": "fcitx5-remote -s wbx && fcitx5-remote -o",
+    "tooltip": false
+  },
+  "clock": {
+    "format": "{:%H:%M}",
+    "tooltip-format": "{:%Y-%m-%d %A}"
+  }
+}

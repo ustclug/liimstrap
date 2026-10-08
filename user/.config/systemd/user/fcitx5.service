@@ -1,0 +1,15 @@
+[Unit]
+Description=LIIMS input method
+PartOf=graphical-session.target
+After=graphical-session-pre.target
+
+[Service]
+Type=dbus
+BusName=org.fcitx.Fcitx5
+ExecStart=/usr/bin/fcitx5 -D
+Restart=always
+RestartSec=2
+TimeoutStopSec=5
+
+[Install]
+WantedBy=graphical-session.target
