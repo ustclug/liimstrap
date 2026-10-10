@@ -219,6 +219,8 @@ add_file /etc/hosts
 run apt purge -y --autoremove ifupdown localepurge nano tasksel
 run apt-get clean
 
+add_file /etc/apt/sources.list
+
 # Linking /etc/resolv.conf causing all DNS resolution fail in build container, make it after all operations requiring network
 ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOT/etc/resolv.conf"
 
