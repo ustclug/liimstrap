@@ -20,5 +20,13 @@ COMMIT
 -A user-filt -d 127.0.0.53 -p udp --dport 53 -j RETURN
 -A user-filt -d 127.0.0.53 -p tcp --dport 53 -j RETURN
 -A user-filt -d 202.38.64.3 -p tcp --dport 23 -j RETURN
+-A user-filt -j RETURN -d 202.38.93.94
+-A user-filt -j RETURN -d 202.38.93.41
+-A user-filt -j RETURN -d 202.38.74.48
+-A user-filt -j RETURN -d 202.38.74.47
+-A user-filt -j RETURN -d 192.168.74.7
+-A user-filt -j RETURN -d 202.38.93.222
+-A user-filt -j RETURN -d 202.38.64.246
+-A user-filt -j RETURN -d 202.38.74.8
 -A user-filt -j REJECT
 COMMIT
