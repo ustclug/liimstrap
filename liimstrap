@@ -194,7 +194,7 @@ install -Dm755 "$BASE/initramfs-tools/hooks/http-root" "$ROOT/etc/initramfs-tool
 install -Dm755 "$BASE/initramfs-tools/scripts/http" "$ROOT/etc/initramfs-tools/scripts/http"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/networkd.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/networkd.sh"
 install -Dm755 "$BASE/initramfs-tools/scripts/init-bottom/overlay.sh" "$ROOT/etc/initramfs-tools/scripts/init-bottom/overlay.sh"
-install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek
+install_package linux-image-amd64 linux-headers-amd64 firmware-linux firmware-realtek firmware-intel-graphics firmware-amd-graphics firmware-intel-misc
 
 # Install systemd-resolved
 install_package systemd-resolved
