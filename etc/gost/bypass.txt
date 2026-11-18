@@ -14,6 +14,7 @@ api.lib.ustc.edu.cn
 iat.ustc.edu.cn
 iat.lib.ustc.edu.cn
 hs.lib.ustc.edu.cn
+meta.lib.ustc.edu.cn
 jw.ustc.edu.cn
 mis.ustc.edu.cn
 yjs.ustc.edu.cn
